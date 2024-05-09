@@ -91,7 +91,7 @@ const config = {
   replaceLogo: true,
   restoreOtherInteractionLinks: false,
   restoreQuoteTweetsLink: true,
-  retweets: 'hide',
+  retweets: 'ignore',
   showBlueReplyFollowersCountAmount: '1000000',
   showBlueReplyFollowersCount: false,
   showBlueReplyVerifiedAccounts: false,
