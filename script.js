@@ -6,7 +6,7 @@
 // @match       https://twitter.com/*
 // @match       https://mobile.twitter.com/*
 // @run-at      document-start
-// @version     149
+// @version     151
 // ==/UserScript==
 void function() {
 
@@ -59,9 +59,11 @@ const config = {
   hideFollowingMetrics: true,
   hideForYouTimeline: true,
   hideGrokNav: true,
+  hideInlinePrompts: true,
+  hideJobsNav: true,
   hideLikeMetrics: true,
   hideListsNav: false,
-  hideMetrics: false,
+  hideMetrics: true,
   hideMonetizationNav: true,
   hideMoreTweets: true,
   hideProfileRetweets: false,
@@ -90,8 +92,10 @@ const config = {
   restoreOtherInteractionLinks: false,
   restoreQuoteTweetsLink: true,
   retweets: 'separate',
+  showBlueReplyFollowersCountAmount: '1000000',
   showBlueReplyFollowersCount: false,
   showBlueReplyVerifiedAccounts: false,
+  showBookmarkButtonUnderFocusedTweets: true,
   tweakQuoteTweetsPage: true,
   twitterBlueChecks: 'replace',
   uninvertFollowButtons: true,
@@ -106,6 +110,7 @@ const config = {
   hideMessagesDrawer: true,
   hideProNav: true,
   hideSidebarContent: true,
+  hideSpacesNav: false,
   navBaseFontSize: true,
   navDensity: 'default',
   showRelevantPeople: false,
@@ -1306,7 +1311,7 @@ const PagePaths = {
   ADD_MUTED_WORD: '/settings/add_muted_keyword',
   BOOKMARKS: '/i/bookmarks',
   COMPOSE_MESSAGE: '/messages/compose',
-  COMPOSE_TWEET: '/compose/tweet',
+  COMPOSE_TWEET: '/compose/post',
   CONNECT: '/i/connect',
   CUSTOMIZE_YOUR_VIEW: '/i/display',
   HOME: '/home',
@@ -1381,7 +1386,7 @@ const URL_LIST_RE = /\/i\/lists\/\d+\/?$/
 const URL_MEDIA_RE = /\/(?:photo|video)\/\d\/?$/
 const URL_MEDIAVIEWER_RE = /^\/[a-zA-Z\d_]{1,20}\/status\/\d+\/mediaviewer$/i
 // Matches URLs which show one of the tabs on a user profile page
-const URL_PROFILE_RE = /^\/([a-zA-Z\d_]{1,20})(?:\/(affiliates|with_replies|superfollows|highlights|media|likes))?\/?$/
+const URL_PROFILE_RE = /^\/([a-zA-Z\d_]{1,20})(?:\/(affiliates|with_replies|superfollows|highlights|articles|media|likes))?\/?$/
 // Matches URLs which show a user's Followers you know / Followers / Following tab
 const URL_PROFILE_FOLLOWS_RE = /^\/[a-zA-Z\d_]{1,20}\/(?:verified_followers|follow(?:ing|ers|ers_you_follow))\/?$/
 const URL_TWEET_RE = /^\/([a-zA-Z\d_]{1,20})\/status\/(\d+)\/?$/
@@ -1751,7 +1756,7 @@ function getElement(selector, {
 function getStateEntities() {
   let reactRootContainer = ($reactRoot?.wrappedJSObject ? $reactRoot.wrappedJSObject : $reactRoot)?._reactRootContainer
   if (reactRootContainer) {
-    let entities = reactRootContainer._internalRoot?.current?.memoizedState?.element?.props?.children?.props?.store?.getState()?.entities
+    let entities = reactRootContainer.current?.memoizedState?.element?.props?.children?.props?.store?.getState()?.entities
     if (entities) {
       return entities
     } else {
@@ -2767,22 +2772,35 @@ const configureCss = (() => {
       `)
     }
     if (config.hideBookmarkButton) {
+      // The Buffer extension adds a new button in position 2 - use their buffer-inserted class to
+      // avoid hiding the wrong button.
       hideCssSelectors.push(
         // Under timeline tweets
-        // The Buffer extension adds a new button in position 2 - use their added class to avoid
-        // hiding the wrong button.
         '[data-testid="tweet"][tabindex="0"] [role="group"]:not(.buffer-inserted) > div:nth-of-type(5)',
         '[data-testid="tweet"][tabindex="0"] [role="group"].buffer-inserted > div:nth-of-type(6)',
-        // Under the focused tweet
-        '[data-testid="tweet"][tabindex="-1"] [role="group"][id^="id__"]:not(.buffer-inserted) > div:nth-child(4)',
-        '[data-testid="tweet"][tabindex="-1"] [role="group"][id^="id__"].buffer-inserted > div:nth-child(5)',
       )
+      if (!config.showBookmarkButtonUnderFocusedTweets) {
+        hideCssSelectors.push(
+          // Under the focused tweet
+          '[data-testid="tweet"][tabindex="-1"] [role="group"][id^="id__"]:not(.buffer-inserted) > div:nth-child(4)',
+          '[data-testid="tweet"][tabindex="-1"] [role="group"][id^="id__"].buffer-inserted > div:nth-child(5)',
+        )
+      }
     }
     if (config.hideBookmarksNav) {
       hideCssSelectors.push(`${menuRole} a[href$="/bookmarks"]`)
     }
     if (config.hideCommunitiesNav) {
       hideCssSelectors.push(`${menuRole} a[href$="/communities"]`)
+    }
+    if (config.hideInlinePrompts) {
+      cssRules.push(`
+        @supports selector(:has(*)) {
+          div[data-testid="inlinePrompt"] {
+            display: none !important;
+          }
+        }
+      `)
     }
     if (config.hideShareTweetButton) {
       hideCssSelectors.push(
@@ -2831,24 +2849,53 @@ const configureCss = (() => {
     if (config.hideAdsNav) {
       hideCssSelectors.push(`${menuRole} a[href*="ads.twitter.com"]`)
     }
+    if (config.hideJobsNav) {
+      hideCssSelectors.push(
+        // Jobs navigation item
+        `${menuRole} a[href="/jobs"]`,
+        // Jobs section in profiles
+        '.Profile [data-testid="jobs"]',
+      )
+    }
     if (config.hideTweetAnalyticsLinks) {
       hideCssSelectors.push('a[data-testid="analyticsButton"]')
     }
     if (config.hideTwitterBlueUpsells) {
       hideCssSelectors.push(
-        // Premium/Verified/Verified Orgs menu item
-        `${menuRole} a:is([href$="/i/premium_sign_up"], [href$="/i/premium_tier_switch"], [href$="/i/verified-choose"], [href$="/i/verified-orgs-signup"])`,
+        // Premium/Verified menu items
+        `${menuRole} a:is([href^="/i/premium"], [href^="/i/verified"])`,
         // "Highlight on your profile" on your tweets
         '[role="menuitem"][data-testid="highlightUpsell"]',
         // "Edit with Premium" on recent tweets
         '[role="menuitem"][data-testid="editWithTwitterBlue"]',
         // Premium item in Settings
-        'body.Settings a[href="/i/premium_sign_up"]',
+        'body.Settings a[href^="/i/premium"]',
         // "Highlight your best content instead" on the pin modal
         '.PinModal [data-testid="sheetDialog"] > div > div:last-child > div > div > div:first-child',
         // Highlight button on the pin modal
         '.PinModal [data-testid="sheetDialog"] div[role="button"]:first-child:nth-last-child(3)',
       )
+      // Hide Highlights and Articles tabs in your own profile if you don't have Premium
+      let profileTabsList = `body.OwnProfile:not(.PremiumProfile) ${Selectors.PRIMARY_COLUMN} nav div[role="tablist"]`
+      let upsellTabLinks = 'a:is([href$="/highlights"], [href$="/articles"])'
+      cssRules.push(`
+        @supports selector(:has(*)) {
+          ${profileTabsList} > div:has(> ${upsellTabLinks}) {
+            flex: 0;
+          }
+          ${profileTabsList} > div > ${upsellTabLinks} {
+            display: none;
+          }
+        }
+      `)
+      // Hide upsell on the Likes tab in your own profile
+      cssRules.push(`
+        @supports selector(:has(*)) {
+          body.OwnProfile ${Selectors.PRIMARY_COLUMN} nav + div:has(a[href^="/i/premium"]) {
+            display: none;
+          }
+        }
+      `)
       // Allow Pin and Cancel buttons go to max-width on the pin modal
       cssRules.push(`
         .PinModal [data-testid="sheetDialog"] > div > div:last-child > div > div {
@@ -2858,14 +2905,16 @@ const configureCss = (() => {
           padding-right: 32px;
         }
       `)
-      // Hide Subscribe prompts in the timeline
-      cssRules.push(`
-        @supports selector(:has(*)) {
-          div[data-testid="inlinePrompt"]:has(a[href^="/i/premium"]) {
-            display: none !important;
+      if (!config.hideInlinePrompts) {
+        // Hide Subscribe prompts in the timeline
+        cssRules.push(`
+          @supports selector(:has(*)) {
+            div[data-testid="inlinePrompt"]:has(a[href^="/i/premium"]) {
+              display: none !important;
+            }
           }
-        }
-      `)
+        `)
+      }
     }
     if (config.hideVerifiedNotificationsTab) {
       cssRules.push(`
@@ -3086,8 +3135,11 @@ const configureCss = (() => {
       if (config.hideProNav) {
         hideCssSelectors.push(`${menuRole} a:is([href*="tweetdeck.twitter.com"], [href*="pro.twitter.com"])`)
       }
+      if (config.hideSpacesNav) {
+        hideCssSelectors.push(`${menuRole} a[href="/i/spaces/start"]`)
+      }
       if (config.hideTwitterBlueUpsells) {
-        hideCssSelectors.push(`${Selectors.PRIMARY_NAV_DESKTOP} a:is([href$="/i/premium_sign_up"], [href$="/i/premium_tier_switch"], [href$="/i/verified-choose"], [href$="/i/verified-orgs-signup"])`)
+        hideCssSelectors.push(`${Selectors.PRIMARY_NAV_DESKTOP} a:is([href^="/i/premium"], [href^="/i/verified"])`)
       }
       if (config.hideSidebarContent) {
         // Only show the first sidebar item by default
@@ -3183,6 +3235,9 @@ const configureCss = (() => {
       }
       if (config.hideMessagesBottomNavItem) {
         hideCssSelectors.push(`${Selectors.PRIMARY_NAV_MOBILE} a[href="/messages"]`)
+      }
+      if (config.hideTwitterBlueUpsells) {
+        hideCssSelectors.push(`${Selectors.PRIMARY_NAV_MOBILE} a[href^="/i/premium"]`)
       }
       if (config.hideShareTweetButton) {
         hideCssSelectors.push(
@@ -4102,7 +4157,7 @@ function onIndividualTweetTimelineChange($timeline, options) {
             hideItem = shouldHideBasedOnVerifiedType && (user == null || !(
               user.following && !config.hideBlueReplyFollowing ||
               user.followedBy && !config.hideBlueReplyFollowedBy ||
-              user.followersCount >= 1000000 && config.showBlueReplyFollowersCount
+              config.showBlueReplyFollowersCount && user.followersCount >= Number(config.showBlueReplyFollowersCountAmount)
             ))
           }
         }
@@ -4361,6 +4416,9 @@ function processCurrentPage() {
   $body.classList.toggle('MainTimeline', isOnMainTimelinePage())
   $body.classList.toggle('Notifications', isOnNotificationsPage())
   $body.classList.toggle('Profile', isOnProfilePage())
+  if (!isOnProfilePage()) {
+    $body.classList.remove('OwnProfile', 'PremiumProfile')
+  }
   $body.classList.toggle('ProfileFollows', isOnFollowListPage())
   if (!isOnFollowListPage()) {
     $body.classList.remove('Subscriptions')
@@ -5094,6 +5152,11 @@ async function tweakProfilePage() {
   observeTimeline(currentPage, {
     isUserTimeline: tab == 'affiliates'
   })
+
+  let $editProfileButton = document.querySelector('a[href="/settings/profile"]')
+  let $headerVerifiedIcon = document.querySelector(`${mobile ? Selectors.MOBILE_TIMELINE_HEADER : Selectors.TIMELINE_HEADING} [data-testid="icon-verified"]`)
+  $body.classList.toggle('OwnProfile', Boolean($editProfileButton))
+  $body.classList.toggle('PremiumProfile', Boolean($headerVerifiedIcon))
 
   if (config.replaceLogo || config.hideSubscriptions) {
     let $profileTabs = await getElement(`${Selectors.PRIMARY_COLUMN} nav`, {
