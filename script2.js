@@ -6,7 +6,7 @@
 // @match       https://twitter.com/*
 // @match       https://mobile.twitter.com/*
 // @run-at      document-start
-// @version     151
+// @version     152
 // ==/UserScript==
 void function() {
 
@@ -68,7 +68,7 @@ const config = {
   hideMoreTweets: true,
   hideProfileRetweets: false,
   hideQuoteTweetMetrics: true,
-  hideReplyMetrics: false,
+  hideReplyMetrics: true,
   hideRetweetMetrics: true,
   hideSeeNewTweets: false,
   hideShareTweetButton: false,
@@ -91,7 +91,7 @@ const config = {
   replaceLogo: true,
   restoreOtherInteractionLinks: false,
   restoreQuoteTweetsLink: true,
-  retweets: 'ignore',
+  retweets: 'separate',
   showBlueReplyFollowersCountAmount: '1000000',
   showBlueReplyFollowersCount: false,
   showBlueReplyVerifiedAccounts: false,
@@ -1490,7 +1490,7 @@ let tweetInteractionsTab = null
 let wasForYouTabSelected = false
 
 function isOnBookmarksPage() {
-  return currentPath == PagePaths.BOOKMARKS
+  return currentPath.startsWith(PagePaths.BOOKMARKS)
 }
 
 function isOnCommunitiesPage() {
@@ -1754,16 +1754,17 @@ function getElement(selector, {
 }
 
 function getStateEntities() {
-  let reactRootContainer = ($reactRoot?.wrappedJSObject ? $reactRoot.wrappedJSObject : $reactRoot)?._reactRootContainer
-  if (reactRootContainer) {
-    let entities = reactRootContainer.current?.memoizedState?.element?.props?.children?.props?.store?.getState()?.entities
+  let wrapped = $reactRoot.firstElementChild.wrappedJSObject || $reactRoot.firstElementChild
+  let reactPropsKey = Object.keys(wrapped).find(key => key.startsWith('__reactProps'))
+  if (reactPropsKey) {
+    let entities = wrapped[reactPropsKey].children?.props?.children?.props?.store?.getState()?.entities
     if (entities) {
       return entities
     } else {
-      warn('state entities not found')
+      warn('React state entities not found')
     }
   } else {
-    warn('React root container not found')
+    warn('React state props not found')
   }
 }
 
@@ -2098,7 +2099,7 @@ async function observeDesktopComposeTweetModal($popup) {
     if (waitingForTweetButton) return
 
     waitingForTweetButton = true
-    let $tweetButtonText = await getElement('div[data-testid="tweetButton"] span > span', {
+    let $tweetButtonText = await getElement('button[data-testid="tweetButton"] span > span', {
       context: $modalDialog,
       name: 'tweet button',
       timeout: 500,
@@ -2116,7 +2117,7 @@ async function observeDesktopComposeTweetModal($popup) {
     tweetButtonObserver = observeElement($modalDialog, (mutations) => {
       for (let mutation of mutations) {
         for (let $addedNode of mutation.addedNodes) {
-          let $tweetButtonText = $addedNode.querySelector?.('div[data-testid="tweetButton"] span > span')
+          let $tweetButtonText = $addedNode.querySelector?.('button[data-testid="tweetButton"] span > span')
           if ($tweetButtonText) {
             setTweetButtonText($tweetButtonText)
           }
@@ -2776,8 +2777,8 @@ const configureCss = (() => {
       // avoid hiding the wrong button.
       hideCssSelectors.push(
         // Under timeline tweets
-        '[data-testid="tweet"][tabindex="0"] [role="group"]:not(.buffer-inserted) > div:nth-of-type(5)',
-        '[data-testid="tweet"][tabindex="0"] [role="group"].buffer-inserted > div:nth-of-type(6)',
+        'body:not(.Bookmarks) [data-testid="tweet"][tabindex="0"] [role="group"]:not(.buffer-inserted) > div:nth-of-type(5)',
+        'body:not(.Bookmarks) [data-testid="tweet"][tabindex="0"] [role="group"].buffer-inserted > div:nth-of-type(6)',
       )
       if (!config.showBookmarkButtonUnderFocusedTweets) {
         hideCssSelectors.push(
@@ -3195,7 +3196,7 @@ const configureCss = (() => {
           '[data-testid="tweet"][tabindex="0"] [role="group"]:not(.buffer-inserted) > div:nth-of-type(4)',
           '[data-testid="tweet"][tabindex="0"] [role="group"].buffer-inserted > div:nth-of-type(5)',
           // In media modal
-          '[aria-modal="true"] > div > div:first-of-type [role="group"] > div:nth-child(4)',
+          '[aria-modal="true"] > div > div:first-of-type [role="group"] > div:nth-child(4):not([role="button"])',
         )
       }
       if (config.retweets != 'separate' && config.quoteTweets != 'separate') {
@@ -3317,12 +3318,12 @@ function configureHideMetricsCss(cssRules, hideCssSelectors) {
     config.hideReplyMetrics   && '[data-testid="reply"]',
     config.hideRetweetMetrics && '[data-testid$="retweet"]',
     config.hideLikeMetrics    && '[data-testid$="like"]',
-    config.hideBookmarkMetrics && '[data-testid$="bookmark"]',
+    config.hideBookmarkMetrics && '[data-testid$="bookmark"], [data-testid$="removeBookmark"]',
   ].filter(Boolean).join(', ')
 
   if (timelineMetricSelectors) {
     cssRules.push(
-      `[role="group"] div:is(${timelineMetricSelectors}) span { visibility: hidden; }`
+      `[role="group"] button:is(${timelineMetricSelectors}) span { visibility: hidden; }`
     )
   }
 
@@ -4409,6 +4410,7 @@ function processCurrentPage() {
   }
 
   // Hooks for styling pages
+  $body.classList.toggle('Bookmarks', isOnBookmarksPage())
   $body.classList.toggle('Community', isOnCommunityPage())
   $body.classList.toggle('Explore', isOnExplorePage())
   $body.classList.toggle('HideSidebar', shouldHideSidebar())
@@ -4908,7 +4910,7 @@ async function tweakHomeIcon() {
 async function tweakTweetBox() {
   // Observe username typeahead dropdowns to replace Blue checks
   if (config.twitterBlueChecks != 'ignore') {
-    let $tweetTextarea = await getElement(`${desktop ? 'div[data-testid="primaryColumn"]': 'main'} label[data-testid^="tweetTextarea"]`, {
+    let $tweetTextarea = await getElement(`${desktop ? 'div[data-testid="primaryColumn"]': 'main'} [data-testid^="tweetTextarea"]`, {
       name: 'tweet textarea',
       stopIf: pageIsNot(currentPage),
     })
@@ -4945,7 +4947,7 @@ async function tweakTweetBox() {
 }
 
 async function tweakTweetButton() {
-  let $tweetButton = await getElement(`${desktop ? 'div[data-testid="primaryColumn"]': 'main'} div[data-testid^="tweetButton"]`, {
+  let $tweetButton = await getElement(`${desktop ? 'div[data-testid="primaryColumn"]': 'main'} button[data-testid^="tweetButton"]`, {
     name: 'tweet button',
     stopIf: pageIsNot(currentPage),
   })
