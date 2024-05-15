@@ -68,7 +68,7 @@ const config = {
   hideMoreTweets: true,
   hideProfileRetweets: false,
   hideQuoteTweetMetrics: true,
-  hideReplyMetrics: true,
+  hideReplyMetrics: false,
   hideRetweetMetrics: true,
   hideSeeNewTweets: false,
   hideShareTweetButton: false,
