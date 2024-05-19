@@ -1,0 +1,5 @@
+  hideCommunitiesNav: true,
+  hideMetrics: true,
+  retweets: 'ignore',
+  twitterBlueChecks: 'hide',
+  hideMessagesBottomNavItem: true,
