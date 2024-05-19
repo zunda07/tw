@@ -99,7 +99,7 @@ const config = {
   showBlueReplyVerifiedAccounts: false,
   showBookmarkButtonUnderFocusedTweets: true,
   tweakQuoteTweetsPage: true,
-  twitterBlueChecks: 'replace',
+  twitterBlueChecks: 'hide',
   uninvertFollowButtons: true,
   // Experiments
   // none currently
