@@ -5,8 +5,10 @@
 // @namespace   https://github.com/insin/control-panel-for-twitter/
 // @match       https://twitter.com/*
 // @match       https://mobile.twitter.com/*
+// @match       https://x.com/*
+// @match       https://mobile.x.com/*
 // @run-at      document-start
-// @version     152
+// @version     154
 // ==/UserScript==
 void function() {
 
@@ -54,7 +56,7 @@ const config = {
   hideBookmarkButton: false,
   hideBookmarkMetrics: true,
   hideBookmarksNav: false,
-  hideCommunitiesNav: false,
+  hideCommunitiesNav: true,
   hideExplorePageContents: true,
   hideFollowingMetrics: true,
   hideForYouTimeline: true,
@@ -91,7 +93,7 @@ const config = {
   replaceLogo: true,
   restoreOtherInteractionLinks: false,
   restoreQuoteTweetsLink: true,
-  retweets: 'ignore', // separate
+  retweets: 'ignore',
   showBlueReplyFollowersCountAmount: '1000000',
   showBlueReplyFollowersCount: false,
   showBlueReplyVerifiedAccounts: false,
@@ -115,7 +117,7 @@ const config = {
   navDensity: 'default',
   showRelevantPeople: false,
   // Mobile only
-  hideMessagesBottomNavItem: false,
+  hideMessagesBottomNavItem: true,
 }
 //#endregion
 
@@ -137,6 +139,7 @@ const locales = {
     RETWEET: 'إعادة التغريد',
     RETWEETED_BY: 'مُعاد تغريدها بواسطة',
     RETWEETS: 'إعادات التغريد',
+    SHARED: 'مشترك',
     SHARED_TWEETS: 'التغريدات المشتركة',
     SHOW: 'إظهار',
     SHOW_MORE_REPLIES: 'عرض المزيد من الردود',
@@ -157,6 +160,7 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'كتم هذه المحادثه',
     POST_ALL: 'نشر الكل',
     QUOTE: 'اقتباس',
+    QUOTES: 'اقتباسات',
     QUOTE_TWEET: 'اقتباس التغريدة',
     QUOTE_TWEETS: 'تغريدات اقتباس',
     REPOST: 'إعادة النشر',
@@ -164,6 +168,7 @@ const locales = {
     RETWEET: 'إعادة التغريد',
     RETWEETED_BY: 'مُعاد تغريدها بواسطة',
     RETWEETS: 'إعادات التغريد',
+    SHARED: 'مشترك',
     SHARED_TWEETS: 'التغريدات المشتركة',
     SHOW: 'إظهار',
     SHOW_MORE_REPLIES: 'عرض المزيد من الردود',
@@ -183,6 +188,7 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'Заглушаване на разговора',
     POST_ALL: 'Публикуване на всичко',
     QUOTE: 'Цитат',
+    QUOTES: 'Цитати',
     QUOTE_TWEET: 'Цитиране на туита',
     QUOTE_TWEETS: 'Туитове с цитат',
     REPOST: 'Препубликуване',
@@ -190,6 +196,7 @@ const locales = {
     RETWEET: 'Ретуитване',
     RETWEETED_BY: 'Ретуитнат от',
     RETWEETS: 'Ретуитове',
+    SHARED: 'Споделен',
     SHARED_TWEETS: 'Споделени туитове',
     SHOW: 'Показване',
     SHOW_MORE_REPLIES: 'Показване на още отговори',
@@ -209,6 +216,7 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'এই কথা-বার্তা নীরব করুন',
     POST_ALL: 'সবকটি পোস্ট করুন',
     QUOTE: 'উদ্ধৃতি',
+    QUOTES: 'উদ্ধৃতিগুলো',
     QUOTE_TWEET: 'টুইট উদ্ধৃত করুন',
     QUOTE_TWEETS: 'টুইট উদ্ধৃতিগুলো',
     REPOST: 'রিপোস্ট',
@@ -216,6 +224,7 @@ const locales = {
     RETWEET: 'পুনঃটুইট',
     RETWEETED_BY: 'পুনঃ টুইট করেছেন',
     RETWEETS: 'পুনঃটুইটগুলো',
+    SHARED: 'ভাগ করা',
     SHARED_TWEETS: 'ভাগ করা টুইটগুলি',
     SHOW: 'দেখান',
     SHOW_MORE_REPLIES: 'আরও উত্তর দেখান',
@@ -236,6 +245,7 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'Silencia la conversa',
     POST_ALL: 'Publica-ho tot',
     QUOTE: 'Cita',
+    QUOTES: 'Cites',
     QUOTE_TWEET: 'Cita el tuit',
     QUOTE_TWEETS: 'Tuits amb cita',
     REPOST: 'Republicació',
@@ -243,6 +253,7 @@ const locales = {
     RETWEET: 'Retuit',
     RETWEETED_BY: 'Retuitat per',
     RETWEETS: 'Retuits',
+    SHARED: 'Compartit',
     SHARED_TWEETS: 'Tuits compartits',
     SHOW: 'Mostra',
     SHOW_MORE_REPLIES: 'Mostra més respostes',
@@ -262,12 +273,14 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'Skrýt tuto konverzaci',
     POST_ALL: 'Postovat vše',
     QUOTE: 'Citace',
+    QUOTES: 'Citace',
     QUOTE_TWEET: 'Citovat Tweet',
     QUOTE_TWEETS: 'Tweety s citací',
     REPOSTS: 'Reposty',
     RETWEET: 'Retweetnout',
     RETWEETED_BY: 'Retweetnuto uživateli',
     RETWEETS: 'Retweety',
+    SHARED: 'Sdílený',
     SHARED_TWEETS: 'Sdílené tweety',
     SHOW: 'Zobrazit',
     SHOW_MORE_REPLIES: 'Zobrazit další odpovědi',
@@ -287,9 +300,11 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'Skjul denne samtale',
     POST_ALL: 'Post alle',
     QUOTE: 'Citat',
+    QUOTES: 'Citater',
     QUOTE_TWEET: 'Citér Tweet',
     QUOTE_TWEETS: 'Citat-Tweets',
     RETWEETED_BY: 'Retweetet af',
+    SHARED: 'Delt',
     SHARED_TWEETS: 'Delte tweets',
     SHOW: 'Vis',
     SHOW_MORE_REPLIES: 'Vis flere svar',
@@ -307,11 +322,13 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'Diese Konversation stummschalten',
     POST_ALL: 'Alle posten',
     QUOTE: 'Zitat',
+    QUOTES: 'Zitate',
     QUOTE_TWEET: 'Tweet zitieren',
     QUOTE_TWEETS: 'Zitierte Tweets',
     REPOST: 'Reposten',
     RETWEET: 'Retweeten',
     RETWEETED_BY: 'Retweetet von',
+    SHARED: 'Geteilt',
     SHARED_TWEETS: 'Geteilte Tweets',
     SHOW: 'Anzeigen',
     SHOW_MORE_REPLIES: 'Mehr Antworten anzeigen',
@@ -330,12 +347,14 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'Σίγαση αυτής της συζήτησης',
     POST_ALL: 'Δημοσίευση όλων',
     QUOTE: 'Παράθεση',
+    QUOTES: 'Παραθέσεις',
     QUOTE_TWEET: 'Παράθεση Tweet',
     QUOTE_TWEETS: 'Tweet με παράθεση',
     REPOST: 'Αναδημοσίευση',
     REPOSTS: 'Αναδημοσιεύσεις',
     RETWEETED_BY: 'Έγινε Retweet από',
     RETWEETS: 'Retweet',
+    SHARED: 'Κοινόχρηστο',
     SHARED_TWEETS: 'Κοινόχρηστα Tweets',
     SHOW: 'Εμφάνιση',
     SHOW_MORE_REPLIES: 'Εμφάνιση περισσότερων απαντήσεων',
@@ -354,6 +373,7 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'Mute this conversation',
     POST_ALL: 'Post all',
     QUOTE: 'Quote',
+    QUOTES: 'Quotes',
     QUOTE_TWEET: 'Quote Tweet',
     QUOTE_TWEETS: 'Quote Tweets',
     REPOST: 'Repost',
@@ -361,6 +381,7 @@ const locales = {
     RETWEET: 'Retweet',
     RETWEETED_BY: 'Retweeted by',
     RETWEETS: 'Retweets',
+    SHARED: 'Shared',
     SHARED_TWEETS: 'Shared Tweets',
     SHOW: 'Show',
     SHOW_MORE_REPLIES: 'Show more replies',
@@ -381,11 +402,13 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'Silenciar esta conversación',
     POST_ALL: 'Postear todo',
     QUOTE: 'Cita',
+    QUOTES: 'Citas',
     QUOTE_TWEET: 'Citar Tweet',
     QUOTE_TWEETS: 'Tweets citados',
     REPOST: 'Repostear',
     RETWEET: 'Retwittear',
     RETWEETED_BY: 'Retwitteado por',
+    SHARED: 'Compartido',
     SHARED_TWEETS: 'Tweets compartidos',
     SHOW: 'Mostrar',
     SHOW_MORE_REPLIES: 'Mostrar más respuestas',
@@ -403,11 +426,13 @@ const locales = {
     LIKES: 'Atsegiteak',
     MUTE_THIS_CONVERSATION: 'Isilarazi elkarrizketa hau',
     QUOTE: 'Aipamena',
+    QUOTES: 'Aipamenak',
     QUOTE_TWEET: 'Txioa apaitu',
     QUOTE_TWEETS: 'Aipatu txioak',
     RETWEET: 'Bertxiotu',
     RETWEETED_BY: 'Bertxiotua:',
     RETWEETS: 'Bertxioak',
+    SHARED: 'Partekatua',
     SHARED_TWEETS: 'Partekatutako',
     SHOW: 'Erakutsi',
     SHOW_MORE_REPLIES: 'Erakutsi erantzun gehiago',
@@ -426,13 +451,15 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'خموش‌سازی این گفتگو',
     POST_ALL: 'پست کردن همه',
     QUOTE: 'نقل‌قول',
+    QUOTES: 'نقل‌قول‌ها',
     QUOTE_TWEET: 'نقل‌توییت',
     QUOTE_TWEETS: 'نقل‌توییت‌ها',
     REPOST: 'بازپست',
-    REPOSTS: 'بازپست‌ها',
+    REPOSTS: 'بازپست',
     RETWEET: 'بازتوییت',
     RETWEETED_BY: 'بازتوییت‌ شد توسط',
     RETWEETS: 'بازتوییت‌ها',
+    SHARED: 'مشترک',
     SHARED_TWEETS: 'توییتهای مشترک',
     SHOW: 'نمایش',
     SHOW_MORE_REPLIES: 'نمایش پاسخ‌های بیشتر',
@@ -453,6 +480,7 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'Hiljennä tämä keskustelu',
     POST_ALL: 'Julkaise kaikki',
     QUOTE: 'Lainaa',
+    QUOTES: 'Lainaukset',
     QUOTE_TWEET: 'Twiitin lainaus',
     QUOTE_TWEETS: 'Twiitin lainaukset',
     REPOST: 'Uudelleenjulkaise',
@@ -460,6 +488,7 @@ const locales = {
     RETWEET: 'Uudelleentwiittaa',
     RETWEETED_BY: 'Uudelleentwiitannut',
     RETWEETS: 'Uudelleentwiittaukset',
+    SHARED: 'Jaettu',
     SHARED_TWEETS: 'Jaetut twiitit',
     SHOW: 'Näytä',
     SHOW_MORE_REPLIES: 'Näytä lisää vastauksia',
@@ -477,6 +506,7 @@ const locales = {
     LIKES: 'Mga Gusto',
     MUTE_THIS_CONVERSATION: 'I-mute ang usapang ito',
     POST_ALL: 'I-post lahat',
+    QUOTES: 'Mga Quote',
     QUOTE_TWEET: 'Quote na Tweet',
     QUOTE_TWEETS: 'Mga Quote na Tweet',
     REPOST: 'I-repost',
@@ -484,6 +514,7 @@ const locales = {
     RETWEET: 'I-retweet',
     RETWEETED_BY: 'Ni-retweet ni',
     RETWEETS: 'Mga Retweet',
+    SHARED: 'Ibinahagi',
     SHARED_TWEETS: 'Mga Ibinahaging Tweet',
     SHOW: 'Ipakita',
     SHOW_MORE_REPLIES: 'Magpakita pa ng mga sagot',
@@ -503,10 +534,12 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'Masquer cette conversation',
     POST_ALL: 'Tout poster',
     QUOTE: 'Citation',
+    QUOTES: 'Citations',
     QUOTE_TWEET: 'Citer le Tweet',
     QUOTE_TWEETS: 'Tweets cités',
     RETWEET: 'Retweeter',
     RETWEETED_BY: 'Retweeté par',
+    SHARED: 'Partagé',
     SHARED_TWEETS: 'Tweets partagés',
     SHOW: 'Afficher',
     SHOW_MORE_REPLIES: 'Voir plus de réponses',
@@ -524,11 +557,13 @@ const locales = {
     LIKES: 'Thaitin siad seo le',
     MUTE_THIS_CONVERSATION: 'Balbhaigh an comhrá seo',
     QUOTE: 'Sliocht',
+    QUOTES: 'Sleachta',
     QUOTE_TWEET: 'Cuir Ráiteas Leis',
     QUOTE_TWEETS: 'Luaigh Tvuíteanna',
     RETWEET: 'Atweetáil',
     RETWEETED_BY: 'Atweetáilte ag',
     RETWEETS: 'Atweetanna',
+    SHARED: 'Roinnte',
     SHARED_TWEETS: 'Tweetanna Roinnte',
     SHOW: 'Taispeáin',
     SHOW_MORE_REPLIES: 'Taispeáin tuilleadh freagraí',
@@ -545,11 +580,13 @@ const locales = {
     LIKES: 'Gústames',
     MUTE_THIS_CONVERSATION: 'Silenciar esta conversa',
     QUOTE: 'Cita',
+    QUOTES: 'Citas',
     QUOTE_TWEET: 'Citar chío',
     QUOTE_TWEETS: 'Chíos citados',
     RETWEET: 'Rechouchiar',
     RETWEETED_BY: 'Rechouchiado por',
     RETWEETS: 'Rechouchíos',
+    SHARED: 'Compartido',
     SHARED_TWEETS: 'Chíos compartidos',
     SHOW: 'Amosar',
     SHOW_MORE_REPLIES: 'Amosar máis respostas',
@@ -568,6 +605,7 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'આ વાર્તાલાપનું જોડાણ અટકાવો',
     POST_ALL: 'બધા પોસ્ટ કરો',
     QUOTE: 'અવતરણ',
+    QUOTES: 'અવતરણો',
     QUOTE_TWEET: 'અવતરણની સાથે ટ્વીટ કરો',
     QUOTE_TWEETS: 'અવતરણની સાથે ટ્વીટ્સ',
     REPOST: 'રીપોસ્ટ કરો',
@@ -575,6 +613,7 @@ const locales = {
     RETWEET: 'પુનટ્વીટ',
     RETWEETED_BY: 'આમની દ્વારા પુનટ્વીટ કરવામાં આવી',
     RETWEETS: 'પુનટ્વીટ્સ',
+    SHARED: 'સાંજેડેલું',
     SHARED_TWEETS: 'શેર કરેલી ટ્વીટ્સ',
     SHOW: 'બતાવો',
     SHOW_MORE_REPLIES: 'વધુ પ્રત્યુતરો દર્શાવો',
@@ -594,6 +633,7 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'להשתיק את השיחה הזאת',
     POST_ALL: 'פרסום הכל',
     QUOTE: 'ציטוט',
+    QUOTES: 'ציטוטים',
     QUOTE_TWEET: 'ציטוט ציוץ',
     QUOTE_TWEETS: 'ציוצי ציטוט',
     REPOST: 'לפרסם מחדש',
@@ -601,6 +641,7 @@ const locales = {
     RETWEET: 'צייץ מחדש',
     RETWEETED_BY: 'צויץ מחדש על־ידי',
     RETWEETS: 'ציוצים מחדש',
+    SHARED: 'משותף',
     SHARED_TWEETS: 'ציוצים משותפים',
     SHOW: 'הצג',
     SHOW_MORE_REPLIES: 'הצג תשובות נוספות',
@@ -621,6 +662,7 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'इस बातचीत को म्यूट करें',
     POST_ALL: 'सभी पोस्ट करें',
     QUOTE: 'कोट',
+    QUOTES: 'कोट',
     QUOTE_TWEET: 'ट्वीट क्वोट करें',
     QUOTE_TWEETS: 'कोट ट्वीट्स',
     REPOST: 'रीपोस्ट',
@@ -628,6 +670,7 @@ const locales = {
     RETWEET: 'रीट्वीट करें',
     RETWEETED_BY: 'इनके द्वारा रीट्वीट किया गया',
     RETWEETS: 'रीट्वीट्स',
+    SHARED: 'साझा किया हुआ',
     SHARED_TWEETS: 'साझा किए गए ट्वीट',
     SHOW: 'दिखाएं',
     SHOW_MORE_REPLIES: 'और अधिक जवाब दिखाएँ',
@@ -647,6 +690,7 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'Isključi zvuk ovog razgovora',
     POST_ALL: 'Objavi sve',
     QUOTE: 'Citat',
+    QUOTES: 'citata',
     QUOTE_TWEET: 'Citiraj Tweet',
     QUOTE_TWEETS: 'Citirani tweetovi',
     REPOST: 'Proslijedi objavu',
@@ -654,6 +698,7 @@ const locales = {
     RETWEET: 'Proslijedi tweet',
     RETWEETED_BY: 'Korisnici koji su proslijedili Tweet',
     RETWEETS: 'Proslijeđeni tweetovi',
+    SHARED: 'Podijeljeno',
     SHARED_TWEETS: 'Dijeljeni tweetovi',
     SHOW: 'Prikaži',
     SHOW_MORE_REPLIES: 'Prikaži još odgovora',
@@ -672,12 +717,14 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'Beszélgetés némítása',
     POST_ALL: 'Az összes közzététele',
     QUOTE: 'Idézés',
+    QUOTES: 'Idézések',
     QUOTE_TWEET: 'Tweet idézése',
     QUOTE_TWEETS: 'Tweet-idézések',
     REPOST: 'Újraposztolás',
     REPOSTS: 'Újraposztolások',
     RETWEETED_BY: 'Retweetelte',
     RETWEETS: 'Retweetek',
+    SHARED: 'Megosztott',
     SHARED_TWEETS: 'Megosztott tweetek',
     SHOW: 'Megjelenítés',
     SHOW_MORE_REPLIES: 'Több válasz megjelenítése',
@@ -697,12 +744,14 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'Bisukan percakapan ini',
     POST_ALL: 'Posting semua',
     QUOTE: 'Kutipan',
+    QUOTES: 'Kutipan',
     QUOTE_TWEET: 'Kutip Tweet',
     QUOTE_TWEETS: 'Tweet Kutipan',
     REPOST: 'Posting ulang',
     REPOSTS: 'Posting ulang',
     RETWEETED_BY: 'Di-retweet oleh',
     RETWEETS: 'Retweet',
+    SHARED: 'Dibagikan',
     SHARED_TWEETS: 'Tweet yang Dibagikan',
     SHOW: 'Tampilkan',
     SHOW_MORE_REPLIES: 'Tampilkan balasan lainnya',
@@ -720,12 +769,14 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'Silenzia questa conversazione',
     POST_ALL: 'Pubblica tutto',
     QUOTE: 'Citazione',
+    QUOTES: 'Citazioni',
     QUOTE_TWEET: 'Cita Tweet',
     QUOTE_TWEETS: 'Tweet di citazione',
     REPOSTS: 'Repost',
     RETWEET: 'Ritwitta',
     RETWEETED_BY: 'Ritwittato da',
     RETWEETS: 'Retweet',
+    SHARED: 'Condiviso',
     SHARED_TWEETS: 'Tweet condivisi',
     SHOW: 'Mostra',
     SHOW_MORE_REPLIES: 'Mostra altre risposte',
@@ -745,6 +796,7 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'この会話をミュート',
     POST_ALL: 'すべてポスト',
     QUOTE: '引用',
+    QUOTES: '引用',
     QUOTE_TWEET: '引用ツイート',
     QUOTE_TWEETS: '引用ツイート',
     REPOST: 'リポスト',
@@ -752,6 +804,7 @@ const locales = {
     RETWEET: 'リツイート',
     RETWEETED_BY: 'リツイートしたユーザー',
     RETWEETS: 'リツイート',
+    SHARED: '共有',
     SHARED_TWEETS: '共有ツイート',
     SHOW: '表示',
     SHOW_MORE_REPLIES: '返信をさらに表示',
@@ -771,6 +824,7 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'ಈ ಸಂವಾದವನ್ನು ಸದ್ದಡಗಿಸಿ',
     POST_ALL: 'ಎಲ್ಲವನ್ನೂ ಪೋಸ್ಟ್ ಮಾಡಿ',
     QUOTE: 'ಕೋಟ್‌',
+    QUOTES: 'ಉಲ್ಲೇಖಗಳು',
     QUOTE_TWEET: 'ಟ್ವೀಟ್ ಕೋಟ್ ಮಾಡಿ',
     QUOTE_TWEETS: 'ಕೋಟ್ ಟ್ವೀಟ್‌ಗಳು',
     REPOST: 'ಮರುಪೋಸ್ಟ್ ಮಾಡಿ',
@@ -778,6 +832,7 @@ const locales = {
     RETWEET: 'ಮರುಟ್ವೀಟಿಸಿ',
     RETWEETED_BY: 'ಮರುಟ್ವೀಟಿಸಿದವರು',
     RETWEETS: 'ಮರುಟ್ವೀಟ್‌ಗಳು',
+    SHARED: 'ಹಂಚಲಾಗಿದೆ',
     SHARED_TWEETS: 'ಹಂಚಿದ ಟ್ವೀಟ್‌ಗಳು',
     SHOW: 'ತೋರಿಸಿ',
     SHOW_MORE_REPLIES: 'ಇನ್ನಷ್ಟು ಪ್ರತಿಕ್ರಿಯೆಗಳನ್ನು ತೋರಿಸಿ',
@@ -797,6 +852,7 @@ const locales = {
     MUTE_THIS_CONVERSATION: '이 대화 뮤트하기',
     POST_ALL: '모두 게시하기',
     QUOTE: '인용',
+    QUOTES: '인용',
     QUOTE_TWEET: '트윗 인용하기',
     QUOTE_TWEETS: '트윗 인용하기',
     REPOST: '재게시',
@@ -804,6 +860,7 @@ const locales = {
     RETWEET: '리트윗',
     RETWEETED_BY: '리트윗함',
     RETWEETS: '리트윗',
+    SHARED: '공유된',
     SHARED_TWEETS: '공유 트윗',
     SHOW: '표시',
     SHOW_MORE_REPLIES: '더 많은 답글 보기',
@@ -824,6 +881,7 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'ही चर्चा म्यूट करा',
     POST_ALL: 'सर्व पोस्ट करा',
     QUOTE: 'भाष्य',
+    QUOTES: 'भाष्य',
     QUOTE_TWEET: 'ट्विट वर भाष्य करा',
     QUOTE_TWEETS: 'भाष्य ट्विट्स',
     REPOST: 'पुन्हा पोस्ट करा',
@@ -831,6 +889,7 @@ const locales = {
     RETWEET: 'पुन्हा ट्विट',
     RETWEETED_BY: 'यांनी पुन्हा ट्विट केले',
     RETWEETS: 'पुनर्ट्विट्स',
+    SHARED: 'सामायिक',
     SHARED_TWEETS: 'सामायिक ट्विट',
     SHOW: 'दाखवा',
     SHOW_MORE_REPLIES: 'अधिक प्रत्युत्तरे दाखवा',
@@ -850,6 +909,7 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'Senyapkan perbualan ini',
     POST_ALL: 'Siarkan semua',
     QUOTE: 'Petikan',
+    QUOTES: 'Petikan',
     QUOTE_TWEET: 'Petik Tweet',
     QUOTE_TWEETS: 'Tweet Petikan',
     REPOST: 'Siaran semula',
@@ -857,6 +917,7 @@ const locales = {
     RETWEET: 'Tweet semula',
     RETWEETED_BY: 'Ditweet semula oleh',
     RETWEETS: 'Tweet semula',
+    SHARED: 'Dikongsi',
     SHARED_TWEETS: 'Tweet Berkongsi',
     SHOW: 'Tunjukkan',
     SHOW_MORE_REPLIES: 'Tunjukkan lagi balasan',
@@ -875,11 +936,13 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'Skjul denne samtalen',
     POST_ALL: 'Publiser alle',
     QUOTE: 'Sitat',
+    QUOTES: 'Sitater',
     QUOTE_TWEET: 'Sitat-Tweet',
     QUOTE_TWEETS: 'Sitat-Tweets',
     REPOST: 'Republiser',
     REPOSTS: 'Republiseringer',
     RETWEETED_BY: 'Retweetet av',
+    SHARED: 'Delt',
     SHARED_TWEETS: 'Delte tweets',
     SHOW: 'Vis',
     SHOW_MORE_REPLIES: 'Vis flere svar',
@@ -897,10 +960,12 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'Dit gesprek negeren',
     POST_ALL: 'Alles plaatsen',
     QUOTE: 'Geciteerd',
+    QUOTES: 'Geciteerd',
     QUOTE_TWEET: 'Citeer Tweet',
     QUOTE_TWEETS: 'Geciteerde Tweets',
     RETWEET: 'Retweeten',
     RETWEETED_BY: 'Geretweet door',
+    SHARED: 'Gedeeld',
     SHARED_TWEETS: 'Gedeelde Tweets',
     SHOW: 'Weergeven',
     SHOW_MORE_REPLIES: 'Meer antwoorden tonen',
@@ -919,6 +984,7 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'Wycisz tę rozmowę',
     POST_ALL: 'Opublikuj wszystko',
     QUOTE: 'Cytuj',
+    QUOTES: 'Cytaty',
     QUOTE_TWEET: 'Cytuj Tweeta',
     QUOTE_TWEETS: 'Cytaty z Tweeta',
     REPOST: 'Podaj dalej wpis',
@@ -926,6 +992,7 @@ const locales = {
     RETWEET: 'Podaj dalej',
     RETWEETED_BY: 'Podane dalej przez',
     RETWEETS: 'Tweety podane dalej',
+    SHARED: 'Udostępniony',
     SHARED_TWEETS: 'Udostępnione Tweety',
     SHOW: 'Pokaż',
     SHOW_MORE_REPLIES: 'Pokaż więcej odpowiedzi',
@@ -944,11 +1011,13 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'Silenciar esta conversa',
     POST_ALL: 'Postar tudo',
     QUOTE: 'Comentar',
+    QUOTES: 'Comentários',
     QUOTE_TWEET: 'Comentar o Tweet',
     QUOTE_TWEETS: 'Tweets com comentário',
     REPOST: 'Repostar',
     RETWEET: 'Retweetar',
     RETWEETED_BY: 'Retweetado por',
+    SHARED: 'Compartilhado',
     SHARED_TWEETS: 'Tweets Compartilhados',
     SHOW: 'Mostrar',
     SHOW_MORE_REPLIES: 'Mostrar mais respostas',
@@ -967,6 +1036,7 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'Ignoră această conversație',
     POST_ALL: 'Postează tot',
     QUOTE: 'Citat',
+    QUOTES: 'Citate',
     QUOTE_TWEET: 'Citează Tweetul',
     QUOTE_TWEETS: 'Tweeturi cu citat',
     REPOST: 'Repostează',
@@ -974,6 +1044,7 @@ const locales = {
     RETWEET: 'Redistribuie',
     RETWEETED_BY: 'Redistribuit de către',
     RETWEETS: 'Retweeturi',
+    SHARED: 'Partajat',
     SHARED_TWEETS: 'Tweeturi partajate',
     SHOW: 'Afișează',
     SHOW_MORE_REPLIES: 'Afișează mai multe răspunsuri',
@@ -992,6 +1063,7 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'Игнорировать эту переписку',
     POST_ALL: 'Опубликовать все',
     QUOTE: 'Цитата',
+    QUOTES: 'Цитаты',
     QUOTE_TWEET: 'Цитировать',
     QUOTE_TWEETS: 'Твиты с цитатами',
     REPOST: 'Сделать репост',
@@ -999,9 +1071,10 @@ const locales = {
     RETWEET: 'Ретвитнуть',
     RETWEETED_BY: 'Ретвитнул(а)',
     RETWEETS: 'Ретвиты',
+    SHARED: 'Общий',
     SHARED_TWEETS: 'Общие твиты',
     SHOW: 'Показать',
-    SHOW_MORE_REPLIES: 'Показать еще ответы',
+    SHOW_MORE_REPLIES: 'Показать ещё ответы',
     TURN_OFF_RETWEETS: 'Отключить ретвиты',
     TURN_ON_RETWEETS: 'Включить ретвиты',
     TWEET: 'Твитнуть',
@@ -1019,6 +1092,7 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'Stíšiť túto konverzáciu',
     POST_ALL: 'Uverejniť všetko',
     QUOTE: 'Citát',
+    QUOTES: 'Citáty',
     QUOTE_TWEET: 'Tweet s citátom',
     QUOTE_TWEETS: 'Tweety s citátom',
     REPOST: 'Opätovné uverejnenie',
@@ -1026,6 +1100,7 @@ const locales = {
     RETWEET: 'Retweetnuť',
     RETWEETED_BY: 'Retweetnuté používateľom',
     RETWEETS: 'Retweety',
+    SHARED: 'Zdieľaný',
     SHARED_TWEETS: 'Zdieľané Tweety',
     SHOW: 'Zobraziť',
     SHOW_MORE_REPLIES: 'Zobraziť viac odpovedí',
@@ -1045,6 +1120,7 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'Игнориши овај разговор',
     POST_ALL: 'Објави све',
     QUOTE: 'Цитат',
+    QUOTES: 'Цитати',
     QUOTE_TWEET: 'твит са цитатом',
     QUOTE_TWEETS: 'твит(ов)а са цитатом',
     REPOST: 'Поново објави',
@@ -1052,6 +1128,7 @@ const locales = {
     RETWEET: 'Ретвитуј',
     RETWEETED_BY: 'Ретвитовано од стране',
     RETWEETS: 'Ретвитови',
+    SHARED: 'Подељено',
     SHARED_TWEETS: 'Дељени твитови',
     SHOW: 'Прикажи',
     SHOW_MORE_REPLIES: 'Прикажи још одговора',
@@ -1072,12 +1149,14 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'Ignorera den här konversationen',
     POST_ALL: 'Lägg upp allt',
     QUOTE: 'Citat',
+    QUOTES: 'Citat',
     QUOTE_TWEET: 'Citera Tweet',
     QUOTE_TWEETS: 'Citat-tweets',
     REPOST: 'Återpublicera',
     REPOSTS: 'Återpubliceringar',
     RETWEET: 'Retweeta',
     RETWEETED_BY: 'Retweetad av',
+    SHARED: 'Delad',
     SHARED_TWEETS: 'Delade tweetsen',
     SHOW: 'Visa',
     SHOW_MORE_REPLIES: 'Visa fler svar',
@@ -1096,6 +1175,7 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'இந்த உரையாடலை செயல்மறை',
     POST_ALL: 'எல்லாம் இடுகையிடு',
     QUOTE: 'மேற்கோள்',
+    QUOTES: 'மேற்கோள்கள்',
     QUOTE_TWEET: 'ட்விட்டை மேற்கோள் காட்டு',
     QUOTE_TWEETS: 'மேற்கோள் கீச்சுகள்',
     REPOST: 'மறுஇடுகை',
@@ -1103,6 +1183,7 @@ const locales = {
     RETWEET: 'மறுட்விட் செய்',
     RETWEETED_BY: 'இவரால் மறுட்விட் செய்யப்பட்டது',
     RETWEETS: 'மறுகீச்சுகள்',
+    SHARED: 'பகிரப்பட்டது',
     SHARED_TWEETS: 'பகிரப்பட்ட ட்வீட்டுகள்',
     SHOW: 'காண்பி',
     SHOW_MORE_REPLIES: 'மேலும் பதில்களைக் காண்பி',
@@ -1122,6 +1203,7 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'ซ่อนบทสนทนานี้',
     POST_ALL: 'โพสต์ทั้งหมด',
     QUOTE: 'การอ้างอิง',
+    QUOTES: 'คำพูด',
     QUOTE_TWEET: 'อ้างอิงทวีต',
     QUOTE_TWEETS: 'ทวีตและคำพูด',
     REPOST: 'รีโพสต์',
@@ -1129,6 +1211,7 @@ const locales = {
     RETWEET: 'รีทวีต',
     RETWEETED_BY: 'ถูกรีทวีตโดย',
     RETWEETS: 'รีทวีต',
+    SHARED: 'แบ่งปัน',
     SHARED_TWEETS: 'ทวีตที่แชร์',
     SHOW: 'แสดง',
     SHOW_MORE_REPLIES: 'แสดงการตอบกลับเพิ่มเติม',
@@ -1149,12 +1232,14 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'Bu sohbeti sessize al',
     POST_ALL: 'Tümünü gönder',
     QUOTE: 'Alıntı',
+    QUOTES: 'Alıntılar',
     QUOTE_TWEET: 'Tweeti Alıntıla',
     QUOTE_TWEETS: 'Alıntı Tweetler',
     REPOST: 'Yeniden gönder',
     REPOSTS: 'Yeniden gönderiler',
     RETWEETED_BY: 'Retweetleyen(ler):',
     RETWEETS: 'Retweetler',
+    SHARED: 'Paylaşılan',
     SHARED_TWEETS: 'Paylaşılan Tweetler',
     SHOW: 'Göster',
     SHOW_MORE_REPLIES: 'Daha fazla yanıt göster',
@@ -1174,6 +1259,7 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'Ігнорувати цю розмову',
     POST_ALL: 'Опублікувати все',
     QUOTE: 'Цитата',
+    QUOTES: 'Цитати',
     QUOTE_TWEET: 'Цитувати твіт',
     QUOTE_TWEETS: 'Цитовані твіти',
     REPOST: 'Зробити репост',
@@ -1181,6 +1267,7 @@ const locales = {
     RETWEET: 'Ретвітнути',
     RETWEETED_BY: 'Ретвіти',
     RETWEETS: 'Ретвіти',
+    SHARED: 'Спільний',
     SHARED_TWEETS: 'Спільні твіти',
     SHOW: 'Показати',
     SHOW_MORE_REPLIES: 'Показати більше відповідей',
@@ -1200,11 +1287,13 @@ const locales = {
     LIKES: 'لائک',
     MUTE_THIS_CONVERSATION: 'اس گفتگو کو میوٹ کریں',
     QUOTE: 'نقل کریں',
+    QUOTES: 'منقول',
     QUOTE_TWEET: 'ٹویٹ کا حوالہ دیں',
     QUOTE_TWEETS: 'ٹویٹ کو نقل کرو',
     RETWEET: 'ریٹویٹ',
     RETWEETED_BY: 'جنہوں نے ریٹویٹ کیا',
     RETWEETS: 'ریٹویٹس',
+    SHARED: 'مشترکہ',
     SHARED_TWEETS: 'مشترکہ ٹویٹس',
     SHOW: 'دکھائیں',
     SHOW_MORE_REPLIES: 'مزید جوابات دکھائیں',
@@ -1224,6 +1313,7 @@ const locales = {
     MUTE_THIS_CONVERSATION: 'Tắt tiếng cuộc trò chuyện này',
     POST_ALL: 'Đăng tất cả',
     QUOTE: 'Trích dẫn',
+    QUOTES: 'Trích dẫn',
     QUOTE_TWEET: 'Trích dẫn Tweet',
     QUOTE_TWEETS: 'Tweet trích dẫn',
     REPOST: 'Đăng lại',
@@ -1231,6 +1321,7 @@ const locales = {
     RETWEET: 'Tweet lại',
     RETWEETED_BY: 'Được Tweet lại bởi',
     RETWEETS: 'Các Tweet lại',
+    SHARED: 'Đã chia sẻ',
     SHARED_TWEETS: 'Tweet được chia sẻ',
     SHOW: 'Hiện',
     SHOW_MORE_REPLIES: 'Hiển thị thêm trả lời',
@@ -1249,6 +1340,7 @@ const locales = {
     MUTE_THIS_CONVERSATION: '將此對話靜音',
     POST_ALL: '全部發佈',
     QUOTE: '引用',
+    QUOTES: '引用',
     QUOTE_TWEET: '引用推文',
     QUOTE_TWEETS: '引用的推文',
     REPOST: '轉發',
@@ -1256,6 +1348,7 @@ const locales = {
     RETWEET: '轉推',
     RETWEETED_BY: '已被轉推',
     RETWEETS: '轉推',
+    SHARED: '共享',
     SHARED_TWEETS: '分享的推文',
     SHOW: '顯示',
     SHOW_MORE_REPLIES: '顯示更多回覆',
@@ -1275,6 +1368,7 @@ const locales = {
     MUTE_THIS_CONVERSATION: '隐藏此对话',
     POST_ALL: '全部发帖',
     QUOTE: '引用',
+    QUOTES: '引用',
     QUOTE_TWEET: '引用推文',
     QUOTE_TWEETS: '引用推文',
     REPOST: '转帖',
@@ -1282,6 +1376,7 @@ const locales = {
     RETWEET: '转推',
     RETWEETED_BY: '转推者',
     RETWEETS: '转推',
+    SHARED: '共享',
     SHARED_TWEETS: '分享的推文',
     SHOW: '显示',
     SHOW_MORE_REPLIES: '显示更多回复',
@@ -1313,7 +1408,7 @@ const PagePaths = {
   COMPOSE_MESSAGE: '/messages/compose',
   COMPOSE_TWEET: '/compose/post',
   CONNECT: '/i/connect',
-  CUSTOMIZE_YOUR_VIEW: '/i/display',
+  DISPLAY_SETTINGS: '/settings/display',
   HOME: '/home',
   NOTIFICATION_TIMELINE: '/i/timeline',
   PROFILE_SETTINGS: '/settings/profile',
@@ -1325,8 +1420,8 @@ const PagePaths = {
 const Selectors = {
   BLOCK_MENU_ITEM: '[data-testid="block"]',
   DESKTOP_TIMELINE_HEADER: 'div[data-testid="primaryColumn"] > div > div:first-of-type',
-  DISPLAY_DONE_BUTTON_DESKTOP: '#layers div[role="button"]:not([aria-label])',
-  DISPLAY_DONE_BUTTON_MOBILE: 'main div[role="button"]:not([aria-label])',
+  DISPLAY_DONE_BUTTON_DESKTOP: '#layers button[role="button"]:not([aria-label])',
+  DISPLAY_DONE_BUTTON_MOBILE: 'main button[role="button"]:not([aria-label])',
   MESSAGES_DRAWER: 'div[data-testid="DMDrawer"]',
   MODAL_TIMELINE: 'section > h1 + div[aria-label] > div',
   MOBILE_TIMELINE_HEADER: 'div[data-testid="TopNavBar"]',
@@ -1365,13 +1460,13 @@ const Images = {
 }
 
 const THEME_BLUE = 'rgb(29, 155, 240)'
-const THEME_COLORS = new Set([
-  THEME_BLUE,
-  'rgb(255, 212, 0)',  // yellow
-  'rgb(244, 33, 46)',  // pink
-  'rgb(120, 86, 255)', // purple
-  'rgb(255, 122, 0)',  // orange
-  'rgb(0, 186, 124)',  // green
+const THEME_COLORS = new Map([
+  ['blue500', THEME_BLUE],
+  ['yellow500', 'rgb(255, 212, 0)'],
+  ['magenta500', 'rgb(249, 24, 128)'],
+  ['purple500', 'rgb(120, 86, 255)'],
+  ['orange500', 'rgb(255, 122, 0)'],
+  ['green500', 'rgb(0, 186, 124)'],
 ])
 // <body> pseudo-selector for pages the full-width content feature works on
 const FULL_WIDTH_BODY_PSEUDO = ':is(.Community, .List, .MainTimeline)'
@@ -1473,10 +1568,10 @@ let selectedHomeTabIndex = -1
 let separatedTweetsTimelineTitle = null
 
 /**
- * The current "Color" setting, which can be changed in "Customize your view".
+ * The current "Color" setting.
  * @type {string}
  */
-let themeColor = localStorage.lastThemeColor
+let themeColor = THEME_BLUE
 
 /**
  * Tab to switch to after navigating to the Tweet interactions page.
@@ -1509,6 +1604,10 @@ function isOnDiscoverCommunitiesPage() {
   return URL_DISCOVER_COMMUNITIES_RE.test(currentPath)
 }
 
+function isOnDisplaySettingsPage() {
+  return currentPath == PagePaths.DISPLAY_SETTINGS
+}
+
 function isOnExplorePage() {
   return currentPath.startsWith('/explore')
 }
@@ -1530,11 +1629,7 @@ function isOnListPage() {
 }
 
 function isOnMainTimelinePage() {
-  return currentPath == PagePaths.HOME || (
-    currentPath == PagePaths.CUSTOMIZE_YOUR_VIEW &&
-    isOnHomeTimeline() ||
-    isOnSeparatedTweetsTimeline()
-  )
+  return currentPath == PagePaths.HOME
 }
 
 function isOnMessagesPage() {
@@ -1753,18 +1848,33 @@ function getElement(selector, {
   })
 }
 
-function getStateEntities() {
+function getState() {
   let wrapped = $reactRoot.firstElementChild.wrappedJSObject || $reactRoot.firstElementChild
   let reactPropsKey = Object.keys(wrapped).find(key => key.startsWith('__reactProps'))
   if (reactPropsKey) {
-    let entities = wrapped[reactPropsKey].children?.props?.children?.props?.store?.getState()?.entities
-    if (entities) {
-      return entities
-    } else {
-      warn('React state entities not found')
-    }
+    let state = wrapped[reactPropsKey].children?.props?.children?.props?.store?.getState()
+    if (state) return state
+    warn('React state not found')
   } else {
-    warn('React state props not found')
+    warn('React prop key not found')
+  }
+}
+
+function getStateEntities() {
+  let state = getState()
+  if (state) {
+    if (state.entities) return state.entities
+    warn('React state entities not found')
+  }
+}
+
+function getThemeColorFromState() {
+  let color = getState()?.settings?.local?.themeColor
+  if (color) {
+    if (THEME_COLORS.has(color)) return THEME_COLORS.get(color)
+    warn(color, 'not found in THEME_COLORS')
+  } else {
+    warn('could not get settings.local.themeColor from React state')
   }
 }
 
@@ -1937,15 +2047,6 @@ const checkReactNativeStylesheet = (() => {
         log('found Chirp fontFamily CSS rule in React Native stylesheet')
         configureFont()
       }
-
-      if (themeColor == null &&
-          rule.style.backgroundColor &&
-          THEME_COLORS.has(rule.style.backgroundColor)) {
-        themeColor = rule.style.backgroundColor
-        localStorage.lastThemeColor = themeColor
-        log(`found initial theme color in React Native stylesheet: ${themeColor}`)
-        configureThemeCss()
-      }
     }
 
     let elapsedTime = Date.now() - startTime
@@ -1962,9 +2063,8 @@ const checkReactNativeStylesheet = (() => {
 })()
 
 /**
- * When the "Background" setting is changed in "Customize your view", <body>'s
- * backgroundColor is changed and the app is re-rendered, so we need to
- * re-process the current page.
+ * When the "Background" setting is changed, <body>'s backgroundColor is changed
+ * and the app is re-rendered, so we need to re-process the current page.
  */
 function observeBodyBackgroundColor() {
   let lastBackgroundColor = null
@@ -1989,89 +2089,6 @@ function observeBodyBackgroundColor() {
     attributeFilter: ['style']
   })
 }
-
-/**
- * When the "Color" setting is changed in "Customize your view", the app
- * re-renders from a certain point, so we need to re-process the current page.
- */
-async function observeColor() {
-  let $colorRerenderBoundary = await getElement('#react-root > div > div')
-
-  observeElement($colorRerenderBoundary, async () => {
-    if (location.pathname != PagePaths.CUSTOMIZE_YOUR_VIEW) return
-
-    let $doneButton = await getElement(desktop ? Selectors.DISPLAY_DONE_BUTTON_DESKTOP : Selectors.DISPLAY_DONE_BUTTON_MOBILE, {
-      name: 'Done button',
-      stopIf: not(() => location.pathname == PagePaths.CUSTOMIZE_YOUR_VIEW),
-    })
-    if (!$doneButton) return
-
-    let color = getComputedStyle($doneButton).backgroundColor
-    if (color == themeColor) return
-
-    log('Color setting changed - re-processing current page')
-    themeColor = color
-    localStorage.lastThemeColor = color
-    configureThemeCss()
-    observePopups()
-    observeSideNavTweetButton()
-    processCurrentPage()
-  }, 'Color change re-render boundary')
-}
-
-/**
- * When the "Font size" setting is changed in "Customize your view" on desktop,
- * `<html>`'s fontSize is changed and the app is re-rendered.
- */
-const observeHtmlFontSize = (() => {
-  /** @type {MutationObserver} */
-  let fontSizeObserver
-
-  return function observeHtmlFontSize() {
-    if (fontSizeObserver) {
-      fontSizeObserver.disconnect()
-      fontSizeObserver = null
-    }
-
-    if (mobile) return
-
-    let lastOverflow = ''
-
-    fontSizeObserver = observeElement($html, () => {
-      if (!$html.style.fontSize) return
-
-      let hasFontSizeChanged = fontSize != null && $html.style.fontSize != fontSize
-
-      if ($html.style.fontSize != fontSize) {
-        fontSize = $html.style.fontSize
-        log(`<html> fontSize has changed to ${fontSize}`)
-        configureNavFontSizeCss()
-      }
-
-      // Ignore overflow changes, which happen when a dialog is shown or hidden
-      let hasOverflowChanged = $html.style.overflow != lastOverflow
-      lastOverflow = $html.style.overflow
-      if (!hasFontSizeChanged && hasOverflowChanged) {
-        log('ignoring <html> style overflow change')
-        return
-      }
-
-      // When you switch between the smallest "Font size" options, <html>'s
-      // style is updated but the font size is kept the same - re-process just
-      // in case.
-      if (hasFontSizeChanged ||
-          location.pathname == PagePaths.CUSTOMIZE_YOUR_VIEW && fontSize == '14px') {
-        log('<html> style attribute changed, re-processing current page')
-        observePopups()
-        observeSideNavTweetButton()
-        processCurrentPage()
-      }
-    }, '<html> style attribute for font size changes', {
-      attributes: true,
-      attributeFilter: ['style']
-    })
-  }
-})()
 
 async function observeDesktopComposeTweetModal($popup) {
  let $modalDialog = await getElement('div[role="dialog"][aria-labelledby]', {
@@ -2848,7 +2865,7 @@ const configureCss = (() => {
       hideCssSelectors.push(`${menuRole} a[href$="/settings/monetization"]`)
     }
     if (config.hideAdsNav) {
-      hideCssSelectors.push(`${menuRole} a[href*="ads.twitter.com"]`)
+      hideCssSelectors.push(`${menuRole} a:is([href*="ads.twitter.com"], [href*="ads.x.com"])`)
     }
     if (config.hideJobsNav) {
       hideCssSelectors.push(
@@ -2874,7 +2891,7 @@ const configureCss = (() => {
         // "Highlight your best content instead" on the pin modal
         '.PinModal [data-testid="sheetDialog"] > div > div:last-child > div > div > div:first-child',
         // Highlight button on the pin modal
-        '.PinModal [data-testid="sheetDialog"] div[role="button"]:first-child:nth-last-child(3)',
+        '.PinModal [data-testid="sheetDialog"] [role="button"]:first-child:nth-last-child(3)',
       )
       // Hide Highlights and Articles tabs in your own profile if you don't have Premium
       let profileTabsList = `body.OwnProfile:not(.PremiumProfile) ${Selectors.PRIMARY_COLUMN} nav div[role="tablist"]`
@@ -3134,7 +3151,7 @@ const configureCss = (() => {
         hideCssSelectors.push(`${Selectors.PRIMARY_NAV_DESKTOP} a[href$="/lists"]`)
       }
       if (config.hideProNav) {
-        hideCssSelectors.push(`${menuRole} a:is([href*="tweetdeck.twitter.com"], [href*="pro.twitter.com"])`)
+        hideCssSelectors.push(`${menuRole} a:is([href*="pro.twitter.com"], [href*="pro.x.com"])`)
       }
       if (config.hideSpacesNav) {
         hideCssSelectors.push(`${menuRole} a[href="/i/spaces/start"]`)
@@ -3233,6 +3250,9 @@ const configureCss = (() => {
           // In case they ever move it to the slide-out menu
           `${menuRole} a[href$="/i/grok"]`,
         )
+      }
+      if (config.hideCommunitiesNav) {
+        hideCssSelectors.push(`${Selectors.PRIMARY_NAV_MOBILE} a[href$="/communities"]`)
       }
       if (config.hideMessagesBottomNavItem) {
         hideCssSelectors.push(`${Selectors.PRIMARY_NAV_MOBILE} a[href="/messages"]`)
@@ -3368,11 +3388,11 @@ function configureSeparatedTweetsTimelineTitle() {
   let previousTitle = separatedTweetsTimelineTitle
 
   if (config.retweets == 'separate' && config.quoteTweets == 'separate') {
-    separatedTweetsTimelineTitle = getString('SHARED_TWEETS')
+    separatedTweetsTimelineTitle = getString(config.replaceLogo ? 'SHARED_TWEETS' : 'SHARED')
   } else if (config.retweets == 'separate') {
-    separatedTweetsTimelineTitle = getString('RETWEETS')
+    separatedTweetsTimelineTitle = getString(config.replaceLogo ? 'RETWEETS' : 'REPOSTS')
   } else if (config.quoteTweets == 'separate') {
-    separatedTweetsTimelineTitle = getString('QUOTE_TWEETS')
+    separatedTweetsTimelineTitle = getString(config.replaceLogo ? 'QUOTE_TWEETS' : 'QUOTES')
   } else {
     separatedTweetsTimelineTitle = null
   }
@@ -4174,7 +4194,7 @@ function onIndividualTweetTimelineChange($timeline, options) {
     } else {
       // We need to identify "Show more replies" so it doesn't get hidden if the
       // item immediately before it was hidden.
-      let $button = $item.querySelector('div[role="button"]')
+      let $button = $item.querySelector('button[role="button"]')
       if ($button) {
         if ($button?.textContent == getString('SHOW_MORE_REPLIES')) {
           itemType = 'SHOW_MORE'
@@ -4294,9 +4314,7 @@ function onTitleChange(title) {
     newPage = title.slice(...ltr ? [0, title.lastIndexOf('/') - 1] : [title.indexOf('\\') + 2])
   }
 
-  // Only allow the same page to re-process after a title change on desktop if
-  // the "Customize your view" dialog is currently open.
-  if (newPage == currentPage && !(desktop && location.pathname == PagePaths.CUSTOMIZE_YOUR_VIEW)) {
+  if (newPage == currentPage) {
     log('ignoring duplicate title change')
     currentNotificationCount = notificationCount
     return
@@ -4324,10 +4342,6 @@ function onTitleChange(title) {
         URL_MEDIA_RE.test(location.pathname) ||
         // …the user stopped viewing media.
         URL_MEDIA_RE.test(currentPath) ||
-        // …the user opened or used the "Customize your view" dialog.
-        location.pathname == PagePaths.CUSTOMIZE_YOUR_VIEW ||
-        // …the user closed the "Customize your view" dialog.
-        currentPath == PagePaths.CUSTOMIZE_YOUR_VIEW ||
         // …the user opened the "Send via Direct Message" dialog.
         location.pathname == PagePaths.COMPOSE_MESSAGE ||
         // …the user closed the "Send via Direct Message" dialog.
@@ -4501,6 +4515,9 @@ function processCurrentPage() {
   else if (isOnCommunityMembersPage()) {
     tweakCommunityMembersPage()
   }
+  else if (isOnDisplaySettingsPage()) {
+    tweakDisplaySettingsPage()
+  }
 
   // On mobile, these are pages instead of modals
   if (mobile) {
@@ -4572,10 +4589,10 @@ function restoreTweetInteractionsLinks($focusedTweet) {
           <span id="tntQuoteTweetCount">
             ${Intl.NumberFormat(lang, {notation: tweetInfo.quote_count < 10000 ? 'standard' : 'compact', compactDisplay: 'short'}).format(tweetInfo.quote_count)}
           </span>
-          <span>${getString(tweetInfo.quote_count == 1 ? 'QUOTE_TWEET' :'QUOTE_TWEETS')}</span>
+          <span>${getString(tweetInfo.quote_count == 1 ? (config.replaceLogo ? 'QUOTE_TWEET' : 'QUOTE') : (config.replaceLogo ? 'QUOTE_TWEETS' : 'QUOTES'))}</span>
         </a>` : ''}
         ${tweetInfo.retweet_count > 0 ? `<a id="tntRetweetsLink" data-tab="2" href="${tweetLink}/retweets" dir="auto" role="link">
-          <span>${getString('RETWEETS')}</span>
+          <span>${getString(config.replaceLogo ? 'RETWEETS' : 'REPOSTS')}</span>
         </a>` : ''}
         ${tweetInfo.favorite_count > 0 ? `<a id="tntLikesLink" data-tab="3" href="${tweetLink}/likes" dir="auto" role="link">
           <span>${getString('LIKES')}</span>
@@ -4614,10 +4631,11 @@ function restoreTweetInteractionsLinks($focusedTweet) {
  * @param {string} page
  */
 function setTitle(page) {
+  let name = config.replaceLogo ? getString('TWITTER') : 'X'
   document.title = ltr ? (
-    `${currentNotificationCount}${page} / ${getString('TWITTER')}`
+    `${currentNotificationCount}${page} / ${name}`
   ) : (
-    `${currentNotificationCount}${getString('TWITTER')} \\ ${page}`
+    `${currentNotificationCount}${name} \\ ${page}`
   )
 }
 
@@ -4808,6 +4826,44 @@ function tweakCommunityMembersPage() {
       isTabbed: true,
       timelineSelector: 'div[data-testid="primaryColumn"] > div > div:last-child',
     })
+  }
+}
+
+function tweakDisplaySettingsPage() {
+  (async () => {
+    let $colorRerenderBoundary = await getElement('#react-root > div > div')
+
+    pageObservers.push(
+      observeElement($colorRerenderBoundary, () => {
+        let newThemeColor = getThemeColorFromState()
+        if (newThemeColor == themeColor) return
+
+        log('Color setting changed')
+        themeColor = newThemeColor
+        configureThemeCss()
+        observePopups()
+        observeSideNavTweetButton()
+      }, 'Color change re-render boundary')
+    )
+  })()
+
+  if (desktop) {
+    pageObservers.push(
+      observeElement($html, () => {
+        if (!$html.style.fontSize) return
+
+        if ($html.style.fontSize != fontSize) {
+          fontSize = $html.style.fontSize
+          log(`<html> fontSize has changed to ${fontSize}`)
+          configureNavFontSizeCss()
+          observePopups()
+          observeSideNavTweetButton()
+        }
+      }, '<html> style attribute for font size changes', {
+        attributes: true,
+        attributeFilter: ['style']
+      })
+    )
   }
 }
 
@@ -5142,11 +5198,14 @@ function tweakNotificationsPage() {
 }
 
 async function tweakProfilePage() {
+  let $initialContent = await getElement(desktop ? Selectors.PRIMARY_COLUMN : Selectors.MOBILE_TIMELINE_HEADER, {
+    name: 'initial profile content',
+    stopIf: pageIsNot(currentPage),
+  })
+  if (!$initialContent) return
+
   if (config.twitterBlueChecks != 'ignore') {
-    if (mobile) {
-      processBlueChecks(document.querySelector(Selectors.MOBILE_TIMELINE_HEADER))
-    }
-    processBlueChecks(document.querySelector(Selectors.PRIMARY_COLUMN))
+    processBlueChecks($initialContent)
   }
 
   let tab = currentPath.match(URL_PROFILE_RE)?.[2] || 'tweets'
@@ -5189,6 +5248,7 @@ async function tweakProfilePage() {
             context: $profileTabs,
             name: 'Subscriptions tab link',
             stopIf: pageIsNot(currentPage),
+            timeout: 1000,
           })
           if ($subscriptionsTabLink) {
             $subscriptionsTabLink.parentElement.classList.add('SubsTab')
@@ -5383,13 +5443,22 @@ async function main() {
       // One-time setup
       checkReactNativeStylesheet()
       observeBodyBackgroundColor()
-      observeColor()
+      let initialThemeColor = getThemeColorFromState()
+      if (initialThemeColor) {
+        themeColor = initialThemeColor
+      }
+      if (desktop) {
+        fontSize = $html.style.fontSize
+        if (!fontSize) {
+          warn('initial fontSize not set on <html>')
+        }
+      }
 
       // Repeatable configuration setup
       configureSeparatedTweetsTimelineTitle()
       configureCss()
+      configureNavFontSizeCss()
       configureThemeCss()
-      observeHtmlFontSize()
       observePopups()
       observeSideNavTweetButton()
 
@@ -5402,7 +5471,6 @@ async function main() {
       }
     }
     else if (flexDirection != lastFlexDirection) {
-      observeHtmlFontSize()
       configChanged({version})
     }
 
@@ -5421,6 +5489,10 @@ async function main() {
  */
 function configChanged(changes) {
   log('config changed', changes)
+
+  if ('version' in changes) {
+    fontSize = desktop ? $html.style.fontSize : null
+  }
 
   configureCss()
   configureFont()
