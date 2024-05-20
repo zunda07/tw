@@ -2,4 +2,6 @@
   hideMetrics: true,
   retweets: 'ignore',
   twitterBlueChecks: 'hide',
+  hideTwitterBlueReplies: true,
   hideMessagesBottomNavItem: true,
+  showBlueReplyVerifiedAccounts: true,
