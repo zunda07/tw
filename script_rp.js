@@ -18,7 +18,7 @@ let debug = false
 let desktop
 /** @type {boolean} */
 let mobile
-let isSafari = navigator.userAgent.includes('Safari/') && !/Chrom(e|ium)\//.test(navigator.userAgent)
+let isSafari = true
 
 /** @type {HTMLHtmlElement} */
 let $html
