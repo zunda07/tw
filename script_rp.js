@@ -8,7 +8,9 @@
 // @match       https://x.com/*
 // @match       https://mobile.x.com/*
 // @run-at      document-start
-// @version     154
+// @version     155
+// @downloadURL https://update.greasyfork.org/scripts/387773/Control%20Panel%20for%20Twitter.user.js
+// @updateURL https://update.greasyfork.org/scripts/387773/Control%20Panel%20for%20Twitter.meta.js
 // ==/UserScript==
 void function() {
 
@@ -70,7 +72,7 @@ const config = {
   hideMoreTweets: true,
   hideProfileRetweets: false,
   hideQuoteTweetMetrics: true,
-  hideReplyMetrics: false,
+  hideReplyMetrics: true,
   hideRetweetMetrics: true,
   hideSeeNewTweets: false,
   hideShareTweetButton: false,
@@ -100,6 +102,7 @@ const config = {
   showBookmarkButtonUnderFocusedTweets: true,
   tweakQuoteTweetsPage: true,
   twitterBlueChecks: 'hide',
+  unblurSensitiveContent: false,
   uninvertFollowButtons: true,
   // Experiments
   // none currently
@@ -1469,7 +1472,7 @@ const THEME_COLORS = new Map([
   ['green500', 'rgb(0, 186, 124)'],
 ])
 // <body> pseudo-selector for pages the full-width content feature works on
-const FULL_WIDTH_BODY_PSEUDO = ':is(.Community, .List, .MainTimeline)'
+const FULL_WIDTH_BODY_PSEUDO = ':is(.Community, .List, .HomeTimeline)'
 // Matches any notification count at the start of the title
 const TITLE_NOTIFICATION_RE = /^\(\d+\+?\) /
 // The Communities nav item takes you to /yourusername/communities
@@ -1512,8 +1515,13 @@ let currentPage = ''
 let currentPath = ''
 
 /**
- * CSS rule in the React Native stylesheet which defines the Chirp font-family
- * and fallbacks for the whole app.
+ * React Native stylesheet rule for the blur filter for sensitive content.
+ * @type {CSSStyleRule}
+ */
+let filterBlurRule = null
+
+/**
+ * React Native stylesheett rule for the Chirp font-family.
  * @type {CSSStyleRule}
  */
 let fontFamilyRule = null
@@ -1531,10 +1539,10 @@ let isDesktopMediaModalOpen = false
 let isDesktopComposeTweetModalOpen = false
 
 /**
- * Cache for the last page title which was used for the main timeline.
+ * Cache for the last page title which was used for the Home timeline.
  * @type {string}
  */
-let lastMainTimelineTitle = null
+let lastHomeTimelineTitle = null
 
 /**
  * MutationObservers active on the current modal.
@@ -1580,7 +1588,7 @@ let themeColor = THEME_BLUE
 let tweetInteractionsTab = null
 
 /**
- * `true` when "For you" was the last tab selected on the main timeline.
+ * `true` when "For you" was the last tab selected on the Home timeline.
  */
 let wasForYouTabSelected = false
 
@@ -1616,10 +1624,6 @@ function isOnFollowListPage() {
   return URL_PROFILE_FOLLOWS_RE.test(currentPath)
 }
 
-function isOnHomeTimeline() {
-  return currentPage == getString('HOME')
-}
-
 function isOnIndividualTweetPage() {
   return URL_TWEET_RE.test(currentPath)
 }
@@ -1628,7 +1632,7 @@ function isOnListPage() {
   return URL_LIST_RE.test(currentPath)
 }
 
-function isOnMainTimelinePage() {
+function isOnHomeTimelinePage() {
   return currentPath == PagePaths.HOME
 }
 
@@ -2027,9 +2031,7 @@ const checkReactNativeStylesheet = (() => {
   let startTime
 
   return function checkReactNativeStylesheet() {
-    if (startTime == null) {
-      startTime = Date.now()
-    }
+    startTime ??= Date.now()
 
     let $style = /** @type {HTMLStyleElement} */ (document.querySelector('style#react-native-stylesheet'))
     if (!$style) {
@@ -2041,16 +2043,22 @@ const checkReactNativeStylesheet = (() => {
       if (!(rule instanceof CSSStyleRule)) continue
 
       if (fontFamilyRule == null &&
-          rule.style.fontFamily &&
-          rule.style.fontFamily.includes('TwitterChirp') && !rule.style.fontFamily.includes('TwitterChirpExtendedHeavy')) {
+          rule.style.fontFamily?.includes('TwitterChirp') &&
+          !rule.style.fontFamily.includes('TwitterChirpExtendedHeavy')) {
         fontFamilyRule = rule
         log('found Chirp fontFamily CSS rule in React Native stylesheet')
         configureFont()
       }
+
+      if (filterBlurRule == null && rule.style.filter?.includes('blur(30px)')) {
+        filterBlurRule = rule
+        log('found filter: blur(30px) rule in React Native stylesheet', filterBlurRule)
+        configureDynamicCss()
+      }
     }
 
     let elapsedTime = Date.now() - startTime
-    if (fontFamilyRule == null || themeColor == null) {
+    if (fontFamilyRule == null || filterBlurRule == null) {
       if (elapsedTime < 3000) {
         setTimeout(checkReactNativeStylesheet, 100)
       } else {
@@ -2245,9 +2253,7 @@ const observeFavicon = (() => {
   let shortcutIconObserver
 
   async function observeFavicon() {
-    if ($shortcutIcon == null) {
-      $shortcutIcon = await getElement('link[rel="shortcut icon"]', {name: 'shortcut icon'})
-    }
+    $shortcutIcon ??= await getElement('link[rel="shortcut icon"]', {name: 'shortcut icon'})
 
     if (!config.replaceLogo) {
       if (shortcutIconObserver != null) {
@@ -2704,12 +2710,12 @@ async function addToggleListRetweetsMenuItem($switchMenuItem) {
 }
 
 /**
- * Redirects away from the home timeline if we're on it and it's been disabled.
+ * Redirects away from the Home timeline if we're on it and it's been disabled.
  * @returns {boolean} `true` if redirected as a result of this call
  */
 function checkforDisabledHomeTimeline() {
   if (config.disableHomeTimeline && location.pathname == '/home') {
-    log(`home timeline disabled, redirecting to /${config.disabledHomeTimelineRedirect}`)
+    log(`Home timeline disabled, redirecting to /${config.disabledHomeTimelineRedirect}`)
     let primaryNavSelector = desktop ? Selectors.PRIMARY_NAV_DESKTOP : Selectors.PRIMARY_NAV_MOBILE
     ;/** @type {HTMLElement} */ (
       document.querySelector(`${primaryNavSelector} a[href="/${config.disabledHomeTimelineRedirect}"]`)
@@ -2723,9 +2729,7 @@ const configureCss = (() => {
   let $style
 
   return function configureCss() {
-    if ($style == null) {
-      $style = addStyle('features')
-    }
+    $style ??= addStyle('features')
     let cssRules = []
     let hideCssSelectors = []
     let menuRole = `[role="${desktop ? 'menu' : 'dialog'}"]`
@@ -2756,19 +2760,19 @@ const configureCss = (() => {
     if (config.alwaysUseLatestTweets && config.hideForYouTimeline) {
       cssRules.push(`
         /* Prevent the For you tab container taking up space */
-        body.TabbedTimeline ${mobile ? Selectors.MOBILE_TIMELINE_HEADER : Selectors.PRIMARY_COLUMN} nav div[role="tablist"] > div:first-child {
+        body.HomeTimeline ${mobile ? Selectors.MOBILE_TIMELINE_HEADER : Selectors.PRIMARY_COLUMN} nav div[role="tablist"] > div:first-child {
           flex-grow: 0;
           flex-shrink: 1;
         }
         /* Hide the For you tab link */
-        body.TabbedTimeline ${mobile ? Selectors.MOBILE_TIMELINE_HEADER : Selectors.PRIMARY_COLUMN} nav div[role="tablist"] > div:first-child > a {
+        body.HomeTimeline ${mobile ? Selectors.MOBILE_TIMELINE_HEADER : Selectors.PRIMARY_COLUMN} nav div[role="tablist"] > div:first-child > a {
           display: none;
         }
       `)
       if (desktop) {
         // Don't accidentally hide the Media button in the Tweet box toolbar
         cssRules.push(`
-          body.TabbedTimeline ${Selectors.PRIMARY_COLUMN} div[data-testid="toolBar"] nav div[role="tablist"] > div:first-child {
+          body.HomeTimeline ${Selectors.PRIMARY_COLUMN} div[data-testid="toolBar"] nav div[role="tablist"] > div:first-child {
             flex-shrink: 0;
           }
         `)
@@ -3034,7 +3038,7 @@ const configureCss = (() => {
           background-color: var(--tab-hover);
         }
         body:not(.SeparatedTweets) #tnt_separated_tweets_tab > a > div > div,
-        body.TabbedTimeline.SeparatedTweets ${mobile ? Selectors.MOBILE_TIMELINE_HEADER : Selectors.PRIMARY_COLUMN} nav div[role="tablist"] > div:not(#tnt_separated_tweets_tab) > a > div > div {
+        body.HomeTimeline.SeparatedTweets ${mobile ? Selectors.MOBILE_TIMELINE_HEADER : Selectors.PRIMARY_COLUMN} nav div[role="tablist"] > div:not(#tnt_separated_tweets_tab) > a > div > div {
           font-weight: normal !important;
           color: var(--color) !important;
         }
@@ -3043,7 +3047,7 @@ const configureCss = (() => {
           color: var(--color-emphasis); !important;
         }
         body:not(.SeparatedTweets) #tnt_separated_tweets_tab > a > div > div > div,
-        body.TabbedTimeline.SeparatedTweets ${mobile ? Selectors.MOBILE_TIMELINE_HEADER : Selectors.PRIMARY_COLUMN} nav div[role="tablist"] > div:not(#tnt_separated_tweets_tab) > a > div > div > div {
+        body.HomeTimeline.SeparatedTweets ${mobile ? Selectors.MOBILE_TIMELINE_HEADER : Selectors.PRIMARY_COLUMN} nav div[role="tablist"] > div:not(#tnt_separated_tweets_tab) > a > div > div > div {
           height: 0 !important;
         }
         body.SeparatedTweets #tnt_separated_tweets_tab > a > div > div > div {
@@ -3078,10 +3082,10 @@ const configureCss = (() => {
         `)
       }
       if (config.hideSeeNewTweets) {
-        hideCssSelectors.push(`body.MainTimeline ${Selectors.PRIMARY_COLUMN} > div > div:first-child > div[style^="transform"]`)
+        hideCssSelectors.push(`body.HomeTimeline ${Selectors.PRIMARY_COLUMN} > div > div:first-child > div[style^="transform"]`)
       }
       if (config.hideTimelineTweetBox) {
-        hideCssSelectors.push(`body.MainTimeline ${Selectors.PRIMARY_COLUMN} > div > div:nth-child(3)`)
+        hideCssSelectors.push(`body.HomeTimeline ${Selectors.PRIMARY_COLUMN} > div > div:nth-child(3)`)
       }
       if (config.disableHomeTimeline) {
         hideCssSelectors.push(`${Selectors.PRIMARY_NAV_DESKTOP} a[href="/home"]`)
@@ -3094,7 +3098,7 @@ const configureCss = (() => {
             max-width: 990px;
           }
           /* Make the "What's happening" input keep its original width */
-          body.MainTimeline ${Selectors.PRIMARY_COLUMN} > div:first-child > div:nth-of-type(3) div[role="progressbar"] + div {
+          body.HomeTimeline ${Selectors.PRIMARY_COLUMN} > div:first-child > div:nth-of-type(3) div[role="progressbar"] + div {
             max-width: 598px;
           }
           /* Use full width when the sidebar is not visible */
@@ -3181,7 +3185,7 @@ const configureCss = (() => {
       } else if (config.hideTwitterBlueUpsells) {
         // Hide "Subscribe to premium" individually
         hideCssSelectors.push(
-          `body.MainTimeline ${Selectors.SIDEBAR_WRAPPERS} > div:nth-of-type(3)`
+          `body.HomeTimeline ${Selectors.SIDEBAR_WRAPPERS} > div:nth-of-type(3)`
         )
       }
       if (config.hideShareTweetButton) {
@@ -3228,7 +3232,7 @@ const configureCss = (() => {
         hideCssSelectors.push(`${Selectors.PRIMARY_NAV_MOBILE} a[href="/home"]`)
       }
       if (config.hideSeeNewTweets) {
-        hideCssSelectors.push(`body.MainTimeline ${Selectors.MOBILE_TIMELINE_HEADER} ~ div[style^="transform"]:last-child`)
+        hideCssSelectors.push(`body.HomeTimeline ${Selectors.MOBILE_TIMELINE_HEADER} ~ div[style^="transform"]:last-child`)
       }
       if (config.hideExplorePageContents) {
         // Hide explore page contents so we don't get a brief flash of them
@@ -3352,19 +3356,31 @@ function configureHideMetricsCss(cssRules, hideCssSelectors) {
   }
 }
 
-const configureNavFontSizeCss = (() => {
+/**
+ * CSS which depends on anything we need to get from the page.
+ */
+const configureDynamicCss = (() => {
   let $style
 
-  return function configureNavFontSizeCss() {
-    if ($style == null) {
-      $style = addStyle('nav-font-size')
-    }
+  return function configureDynamicCss() {
+    $style ??= addStyle('dynamic')
     let cssRules = []
 
     if (fontSize != null && config.navBaseFontSize) {
       cssRules.push(`
         ${Selectors.PRIMARY_NAV_DESKTOP} div[dir] span { font-size: ${fontSize}; font-weight: normal; }
         ${Selectors.PRIMARY_NAV_DESKTOP} div[dir] { margin-top: -4px; }
+      `)
+    }
+
+    if (filterBlurRule != null && config.unblurSensitiveContent) {
+      cssRules.push(`
+        ${filterBlurRule.selectorText} {
+          filter: none !important;
+        }
+        ${filterBlurRule.selectorText} + div {
+          display: none !important;
+        }
       `)
     }
 
@@ -3379,7 +3395,7 @@ const configureNavFontSizeCss = (() => {
  * If we're currently on the separated tweets timeline and…
  * - …its title has changed, the page title will be changed to "navigate" to it.
  * - …the separated tweets timeline is no longer needed, we'll change the page
- *   title to "navigate" back to the main timeline.
+ *   title to "navigate" back to the Home timeline.
  *
  * @returns {boolean} `true` if "navigation" was triggered by this call
  */
@@ -3400,7 +3416,7 @@ function configureSeparatedTweetsTimelineTitle() {
   let titleChanged = previousTitle != separatedTweetsTimelineTitle
   if (wasOnSeparatedTweetsTimeline) {
     if (separatedTweetsTimelineTitle == null) {
-      log('moving from separated tweets timeline to main timeline after config change')
+      log('moving from separated tweets timeline to Home timeline after config change')
       setTitle(getString('HOME'))
       return true
     }
@@ -3410,9 +3426,9 @@ function configureSeparatedTweetsTimelineTitle() {
       return true
     }
   } else {
-    if (titleChanged && previousTitle != null && lastMainTimelineTitle == previousTitle) {
-      log('updating lastMainTimelineTitle with new separated tweets timeline title')
-      lastMainTimelineTitle = separatedTweetsTimelineTitle
+    if (titleChanged && previousTitle != null && lastHomeTimelineTitle == previousTitle) {
+      log('updating lastHomeTimelineTitle with new separated tweets timeline title')
+      lastHomeTimelineTitle = separatedTweetsTimelineTitle
     }
   }
 }
@@ -3421,9 +3437,7 @@ const configureThemeCss = (() => {
   let $style
 
   return function configureThemeCss() {
-    if ($style == null) {
-      $style = addStyle('theme')
-    }
+    $style ??= addStyle('theme')
     let cssRules = []
 
     if (debug) {
@@ -3671,8 +3685,8 @@ function handlePopup($popup) {
         log('compose tweet modal closed')
         isDesktopComposeTweetModalOpen = false
         // The Tweet button will re-render if the modal was opened to edit
-        // multiple Tweets on the home timeline.
-        if (config.replaceLogo && isOnHomeTimeline()) {
+        // multiple Tweets on the Home timeline.
+        if (config.replaceLogo && isOnHomeTimelinePage()) {
           tweakTweetButton()
         }
       }
@@ -3942,10 +3956,10 @@ function onTimelineChange($timeline, page, options = {}) {
   let startTime = Date.now()
   let {classifyTweets = true, hideHeadings = true, isUserTimeline = false} = options
 
-  let isOnMainTimeline = isOnMainTimelinePage()
+  let isOnHomeTimeline = isOnHomeTimelinePage()
   let isOnListTimeline = isOnListPage()
   let isOnProfileTimeline = isOnProfilePage()
-  let timelineHasSpecificHandling = isOnMainTimeline || isOnListTimeline || isOnProfileTimeline
+  let timelineHasSpecificHandling = isOnHomeTimeline || isOnListTimeline || isOnProfileTimeline
 
   if (config.twitterBlueChecks != 'ignore' && (isUserTimeline || !timelineHasSpecificHandling)) {
     processBlueChecks($timeline)
@@ -3985,8 +3999,8 @@ function onTimelineChange($timeline, page, options = {}) {
         if (isReply && hidPreviousItem != null) {
           hideItem = hidPreviousItem
         } else {
-          if (isOnMainTimeline) {
-            hideItem = shouldHideMainTimelineItem(itemType, page)
+          if (isOnHomeTimeline) {
+            hideItem = shouldHideHomeTimelineItem(itemType, page)
           }
           else if (isOnListTimeline) {
             hideItem = shouldHideListTimelineItem(itemType)
@@ -4314,10 +4328,38 @@ function onTitleChange(title) {
     newPage = title.slice(...ltr ? [0, title.lastIndexOf('/') - 1] : [title.indexOf('\\') + 2])
   }
 
+  let hasDesktopModalBeenOpenedOrClosed = desktop && (
+    // Timeline settings dialog opened
+    location.pathname == PagePaths.TIMELINE_SETTINGS ||
+    // Timeline settings dialog closed
+    currentPath == PagePaths.TIMELINE_SETTINGS ||
+    // Media modal opened
+    URL_MEDIA_RE.test(location.pathname) ||
+    // Media modal closed
+    URL_MEDIA_RE.test(currentPath) ||
+    // "Send via Direct Message" dialog opened
+    location.pathname == PagePaths.COMPOSE_MESSAGE ||
+    // "Send via Direct Message" dialog closed
+    currentPath == PagePaths.COMPOSE_MESSAGE ||
+    // Compose Tweet dialog opened
+    location.pathname == PagePaths.COMPOSE_TWEET ||
+    // Compose Tweet dialog closed
+    currentPath == PagePaths.COMPOSE_TWEET
+  )
+
   if (newPage == currentPage) {
-    log('ignoring duplicate title change')
-    currentNotificationCount = notificationCount
-    return
+    // XXX After initial migration to x.com, Twitter has a bug where viewing a
+    //     user profile makes the title sticky, so we also check the pathname.
+    //     Remove this when we can, as unexpected modals on desktop will cause
+    //     the underlying page to be reprocessed incorrectly.
+    if (location.pathname != currentPath && !hasDesktopModalBeenOpenedOrClosed) {
+      warn('Twitter bug: title is the same but path has changed', {from: currentPath, to: location.pathname})
+    }
+    else {
+      log(`ignoring duplicate title change`)
+      currentNotificationCount = notificationCount
+      return
+    }
   }
 
   // Search terms are shown in the title
@@ -4329,27 +4371,13 @@ function onTitleChange(title) {
 
   // On desktop, stay on the separated tweets timeline when…
   if (desktop && currentPage == separatedTweetsTimelineTitle &&
-      // …the title has changed back to the main timeline…
+      // …the title has changed back to the Home timeline…
       (newPage == getString('HOME')) &&
       // …the Home nav link or Following / Home header _wasn't_ clicked and…
       !homeNavigationWasUsed &&
       (
-        // …the user opened Timeline settings dialog.
-        location.pathname == PagePaths.TIMELINE_SETTINGS ||
-        // …the user closed the Timeline settings dialog.
-        currentPath == PagePaths.TIMELINE_SETTINGS ||
-        // …the user viewed media.
-        URL_MEDIA_RE.test(location.pathname) ||
-        // …the user stopped viewing media.
-        URL_MEDIA_RE.test(currentPath) ||
-        // …the user opened the "Send via Direct Message" dialog.
-        location.pathname == PagePaths.COMPOSE_MESSAGE ||
-        // …the user closed the "Send via Direct Message" dialog.
-        currentPath == PagePaths.COMPOSE_MESSAGE ||
-        // …the user opened the compose Tweet dialog.
-        location.pathname == PagePaths.COMPOSE_TWEET ||
-        // …the user closed the compose Tweet dialog.
-        currentPath == PagePaths.COMPOSE_TWEET ||
+        // …a modal which changes the pathname has been opened or closed.
+        hasDesktopModalBeenOpenedOrClosed ||
         // …the notification count in the title changed.
         notificationCount != currentNotificationCount
       )) {
@@ -4366,9 +4394,9 @@ function onTitleChange(title) {
   if (location.pathname == PagePaths.HOME &&
       currentPath != PagePaths.HOME &&
       !homeNavigationWasUsed &&
-      lastMainTimelineTitle != null &&
+      lastHomeTimelineTitle != null &&
       separatedTweetsTimelineTitle != null &&
-      lastMainTimelineTitle == separatedTweetsTimelineTitle) {
+      lastHomeTimelineTitle == separatedTweetsTimelineTitle) {
     log('restoring display of the separated tweets timeline')
     currentNotificationCount = notificationCount
     currentPath = location.pathname
@@ -4383,8 +4411,8 @@ function onTitleChange(title) {
   currentNotificationCount = notificationCount
   currentPath = location.pathname
 
-  if (isOnMainTimelinePage()) {
-    lastMainTimelineTitle = currentPage
+  if (isOnHomeTimelinePage()) {
+    lastHomeTimelineTitle = currentPage
   }
 
   log('processing new page')
@@ -4429,7 +4457,7 @@ function processCurrentPage() {
   $body.classList.toggle('Explore', isOnExplorePage())
   $body.classList.toggle('HideSidebar', shouldHideSidebar())
   $body.classList.toggle('List', isOnListPage())
-  $body.classList.toggle('MainTimeline', isOnMainTimelinePage())
+  $body.classList.toggle('HomeTimeline', isOnHomeTimelinePage())
   $body.classList.toggle('Notifications', isOnNotificationsPage())
   $body.classList.toggle('Profile', isOnProfilePage())
   if (!isOnProfilePage()) {
@@ -4445,7 +4473,6 @@ function processCurrentPage() {
   $body.classList.toggle('Settings', isOnSettingsPage())
   $body.classList.toggle('MobileMedia', mobile && URL_MEDIA_RE.test(location.pathname))
   $body.classList.toggle('MediaViewer', mobile && URL_MEDIAVIEWER_RE.test(location.pathname))
-  $body.classList.remove('TabbedTimeline')
   $body.classList.remove('SeparatedTweets')
 
   if (desktop) {
@@ -4472,8 +4499,8 @@ function processCurrentPage() {
     observeSearchForm()
   }
 
-  if (isOnMainTimelinePage()) {
-    tweakMainTimelinePage()
+  if (isOnHomeTimelinePage()) {
+    tweakHomeTimelinePage()
   }
   else {
     removeMobileTimelineHeaderElements()
@@ -4681,7 +4708,7 @@ function shouldHideListTimelineItem(type) {
  * @param {string} page
  * @returns {boolean}
  */
-function shouldHideMainTimelineItem(type, page) {
+function shouldHideHomeTimelineItem(type, page) {
   switch (type) {
     case 'QUOTE_TWEET':
       return shouldHideSharedTweet(config.quoteTweets, page)
@@ -4855,7 +4882,7 @@ function tweakDisplaySettingsPage() {
         if ($html.style.fontSize != fontSize) {
           fontSize = $html.style.fontSize
           log(`<html> fontSize has changed to ${fontSize}`)
-          configureNavFontSizeCss()
+          configureDynamicCss()
           observePopups()
           observeSideNavTweetButton()
         }
@@ -5017,15 +5044,14 @@ async function tweakTweetButton() {
   }
 }
 
-function tweakMainTimelinePage() {
+function tweakHomeTimelinePage() {
   if (desktop) {
     tweakTweetBox()
   }
 
   let $timelineTabs = document.querySelector(`${mobile ? Selectors.MOBILE_TIMELINE_HEADER : Selectors.PRIMARY_COLUMN} nav`)
 
-  // "Which version of the main timeline are we on?" hooks for styling
-  $body.classList.toggle('TabbedTimeline', $timelineTabs != null)
+  // Hook for styling when on the separated tweets tab
   $body.classList.toggle('SeparatedTweets', isOnSeparatedTweetsTimeline())
 
   if ($timelineTabs == null) {
@@ -5145,7 +5171,7 @@ async function tweakTimelineTabs($timelineTabs) {
       })
       $followingTabLink.parentElement.insertAdjacentElement('afterend', $newTab)
 
-      // Return to the main timeline view when any other tab is clicked
+      // Return to the Home timeline when any other tab is clicked
       $followingTabLink.parentElement.parentElement.addEventListener('click', () => {
         if (location.pathname == '/home' && !document.title.startsWith(getString('HOME'))) {
           log('setting title to Home')
@@ -5154,7 +5180,7 @@ async function tweakTimelineTabs($timelineTabs) {
         }
       })
 
-      // Return to the main timeline when the Home nav link is clicked
+      // Return to the Home timeline when the Home nav link is clicked
       let $homeNavLink = await getElement(Selectors.NAV_HOME_LINK, {
         name: 'home nav link',
         stopIf: pathIsNot(currentPath),
@@ -5457,7 +5483,7 @@ async function main() {
       // Repeatable configuration setup
       configureSeparatedTweetsTimelineTitle()
       configureCss()
-      configureNavFontSizeCss()
+      configureDynamicCss()
       configureThemeCss()
       observePopups()
       observeSideNavTweetButton()
@@ -5496,7 +5522,7 @@ function configChanged(changes) {
 
   configureCss()
   configureFont()
-  configureNavFontSizeCss()
+  configureDynamicCss()
   configureThemeCss()
   observeFavicon()
   observePopups()
