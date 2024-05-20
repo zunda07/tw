@@ -4149,7 +4149,7 @@ function onIndividualTweetTimelineChange($timeline, options) {
         restoreLinkHeadline($tweet)
       }
 
-      if (!hideItem && (config.twitterBlueChecks != 'ignore' || config.hideTwitterBlueReplies)) {
+      if (config.twitterBlueChecks != 'ignore' || config.hideTwitterBlueReplies) {
         for (let $svg of $tweet.querySelectorAll(Selectors.VERIFIED_TICK)) {
           let verifiedType = getVerifiedType($svg)
           if (!verifiedType) continue
